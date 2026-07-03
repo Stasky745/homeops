@@ -6,3 +6,4 @@ resources:
   - cloudflare-ddns/ks.yaml
   - cloudflared/ks.yaml
   - echo/ks.yaml
+  - newt/ks.yaml
