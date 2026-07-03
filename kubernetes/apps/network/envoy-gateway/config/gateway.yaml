@@ -9,7 +9,7 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
-  name: internal
+  name: stasky
   namespace: network
 spec:
   provider:
@@ -23,7 +23,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: internal
+  name: stasky
   namespace: network
 spec:
   gatewayClassName: envoy
@@ -31,7 +31,7 @@ spec:
     parametersRef:
       group: gateway.envoyproxy.io
       kind: EnvoyProxy
-      name: internal
+      name: stasky
   listeners:
     - name: http
       protocol: HTTP
@@ -53,7 +53,7 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
-  name: external
+  name: ribera
   namespace: network
 spec:
   provider:
@@ -67,7 +67,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: external
+  name: ribera
   namespace: network
 spec:
   gatewayClassName: envoy
@@ -75,7 +75,7 @@ spec:
     parametersRef:
       group: gateway.envoyproxy.io
       kind: EnvoyProxy
-      name: external
+      name: ribera
   listeners:
     - name: http
       protocol: HTTP

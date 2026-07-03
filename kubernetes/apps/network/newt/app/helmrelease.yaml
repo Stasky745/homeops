@@ -20,6 +20,9 @@ spec:
             image:
               repository: fosrl/newt
               tag: "1.14.0"
+            args:
+              - --blueprint-file
+              - /blueprint/blueprint.yaml
             env:
               PANGOLIN_ENDPOINT: "https://pangolin.stasky.win"
             envFrom:
@@ -36,6 +39,11 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /.config
+      blueprint:
+        type: configMap
+        name: newt-blueprint
+        globalMounts:
+          - path: /blueprint
 
     defaultPodOptions:
       annotations:

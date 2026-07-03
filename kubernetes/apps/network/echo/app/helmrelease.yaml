@@ -61,7 +61,7 @@ spec:
         hostnames:
           - echo.stasky.win
         parentRefs:
-          - name: internal
+          - name: stasky
             namespace: network
             sectionName: https
         rules:

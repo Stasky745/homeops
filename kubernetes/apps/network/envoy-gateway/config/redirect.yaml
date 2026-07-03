@@ -1,11 +1,11 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: internal-http-to-https
+  name: stasky-http-to-https
   namespace: network
 spec:
   parentRefs:
-    - name: internal
+    - name: stasky
       sectionName: http
   rules:
     - filters:

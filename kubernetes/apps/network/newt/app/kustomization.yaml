@@ -3,3 +3,9 @@ kind: Kustomization
 resources:
   - externalsecret.yaml
   - helmrelease.yaml
+configMapGenerator:
+  - name: newt-blueprint
+    files:
+      - blueprint.yaml
+    options:
+      disableNameSuffixHash: true

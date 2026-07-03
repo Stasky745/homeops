@@ -1,0 +1,10 @@
+public-resources:
+  flux-webhook:
+    name: Flux Webhook
+    mode: http
+    full-domain: flux-webhook.stasky.win
+    targets:
+      - site: lanky-little-blue-penguin
+        hostname: webhook-receiver.flux-system.svc.cluster.local
+        port: 9292
+        method: http

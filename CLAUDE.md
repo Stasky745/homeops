@@ -40,8 +40,8 @@ Primary network interface on all nodes: `eno1`
 | Address | Purpose |
 |---|---|
 | 192.168.42.10 | Talos L2 VIP — kube-apiserver endpoint (floats between nodes) |
-| 192.168.42.100 | Internal Envoy Gateway (Cilium LB IPAM, pinned) |
-| 192.168.42.101 | External Envoy Gateway (Cilium LB IPAM, pinned) |
+| 192.168.42.100 | `stasky` Envoy Gateway — all `*.stasky.win` (Cilium LB IPAM, pinned) |
+| 192.168.42.101 | `ribera` Envoy Gateway — future separate domain (Cilium LB IPAM, pinned) |
 | 192.168.42.100–150 | Cilium LoadBalancer IP pool |
 | 10.244.0.0/22 | Pod CIDR (three /24s across nodes) |
 | 127.0.0.1:7445 | Talos local kube-apiserver proxy (used by Cilium — see gotchas) |
@@ -52,8 +52,8 @@ This cluster lives on the **servers VLAN (42)** of a segmented home network mana
 
 - `*.stasky.win` resolves to `192.168.42.100` internally via split-horizon DNS (dnsmasq on nami)
 - `*.stasky.win` → `192.168.42.100` externally via Cloudflare wildcard (for VPN clients)
-- External Envoy Gateway (`192.168.42.101`) handles public-facing services via Cloudflare + DNAT on nami
-- WireGuard VPN clients get split-tunnel `AllowedIPs = 192.168.42.0/24` — they use the internal gateway
+- `ribera` gateway (`192.168.42.101`) reserved for future separate domain (e.g. Jellyfin)
+- WireGuard VPN clients get split-tunnel `AllowedIPs = 192.168.42.0/24` — they use the `stasky` gateway
 
 ---
 
@@ -242,8 +242,8 @@ Envoy Gateway is deployed in the `network` namespace. Two Gateways exist:
 
 | Gateway | IP | Purpose |
 |---|---|---|
-| `internal` | 192.168.42.100 | Internal services — all `*.stasky.win` |
-| `external` | 192.168.42.101 | Public-facing services via Cloudflare |
+| `stasky` | 192.168.42.100 | All `*.stasky.win` services |
+| `ribera` | 192.168.42.101 | Future separate domain (reserved) |
 
 **IPs are pinned via `EnvoyProxy` CRD**, not via `Gateway.spec.addresses`. The `addresses` field causes Envoy Gateway to request an additional IP on top of any dynamically assigned one, resulting in duplicate IPs per service. The correct pattern:
 
@@ -251,7 +251,7 @@ Envoy Gateway is deployed in the `network` namespace. Two Gateways exist:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
-  name: internal
+  name: stasky
   namespace: network
 spec:
   provider:
@@ -273,7 +273,7 @@ The `envoy-gateway-config` Kustomization depends on `cert-manager-config` to ens
 
 ### HTTPRoute conventions
 
-- **Internal gateway routes**: no `external-dns` annotation needed. Covered by split-horizon DNS on nami.
+- **`stasky` gateway routes**: no `external-dns` annotation needed. Covered by split-horizon DNS on nami.
 - **External gateway routes**: must include:
   ```yaml
   annotations:
@@ -282,7 +282,7 @@ The `envoy-gateway-config` Kustomization depends on `cert-manager-config` to ens
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"  # DNS-only (e.g. WireGuard UDP)
   ```
 
-external-dns only manages routes attached to the `external` gateway (`--gateway-name=external --gateway-namespace=network`).
+external-dns (when added) should watch the `ribera` gateway (`--gateway-name=ribera --gateway-namespace=network`). HTTPRoutes on the `stasky` gateway are covered by the `*.stasky.win` wildcard and need no external-dns annotation.
 
 ---
 
@@ -348,7 +348,7 @@ kubernetes/apps/
 
 **All versions must be pinned.** Never use `latest`, a major-only tag (`:1`), or any floating tag for container images or chart versions. Always specify an exact version (e.g. `image.tag: "1.15.0"`, `version: "3.5.0"`).
 
-**Every HTTPRoute attached to the `external` gateway must include the Cloudflare proxy annotation** to explicitly declare whether Cloudflare should proxy the traffic:
+**Every HTTPRoute attached to the `ribera` gateway must include the Cloudflare proxy annotation** to explicitly declare whether Cloudflare should proxy the traffic:
 
 ```yaml
 metadata:
@@ -358,7 +358,7 @@ metadata:
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"  # grey cloud — DNS only
 ```
 
-Use `"true"` for HTTP/HTTPS services. Use `"false"` for UDP services like WireGuard (which can't be proxied). HTTPRoutes on the `internal` gateway do not need this annotation — they are covered by the `*.stasky.win` wildcard and are never managed by external-dns.
+Use `"true"` for HTTP/HTTPS services. Use `"false"` for UDP services like WireGuard (which can't be proxied). HTTPRoutes on the `stasky` gateway do not need this annotation — they are covered by the `*.stasky.win` wildcard and are never managed by external-dns.
 
 **Always split HelmRepository and HelmRelease into separate files** (`helmrepository.yaml` and `helmrelease.yaml`). Never combine them in a single file with `---`.
 
