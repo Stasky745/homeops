@@ -6,5 +6,5 @@ public-resources:
     targets:
       - site: lanky-little-blue-penguin
         hostname: webhook-receiver.flux-system.svc.cluster.local
-        port: 9292
+        port: 80
         method: http
