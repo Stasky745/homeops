@@ -34,7 +34,8 @@ spec:
       # CoreDNS forwards unknown queries upstream → nami → returns VPS IP for netbird.stasky.win.
       dnsPolicy: ClusterFirstWithHostNet
       automountServiceAccountToken: false
-      nodeName: luffy
+      nodeSelector:
+        kubernetes.io/hostname: luffy
       annotations:
         reloader.stakater.com/auto: "true"
 
