@@ -31,8 +31,6 @@ spec:
               capabilities:
                 drop:
                   - ALL
-                add:
-                  - NET_RAW
     persistence:
       config:
         type: emptyDir
