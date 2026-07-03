@@ -4,14 +4,14 @@ metadata:
   name: netbird
   namespace: flux-system
 spec:
-  targetNamespace: network
+  targetNamespace: netbird
   commonMetadata:
     labels:
       app.kubernetes.io/name: netbird
   dependsOn:
     - name: app-template
     - name: external-secrets-clustersecretstore
-  path: ./kubernetes/apps/network/netbird/app
+  path: ./kubernetes/apps/netbird/netbird/app
   prune: true
   sourceRef:
     kind: GitRepository
@@ -23,8 +23,8 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: netbird
-      namespace: network
+      namespace: netbird
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       name: netbird-credentials
-      namespace: network
+      namespace: netbird
