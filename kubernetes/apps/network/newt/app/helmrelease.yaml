@@ -31,6 +31,12 @@ spec:
               capabilities:
                 drop:
                   - ALL
+    persistence:
+      config:
+        type: emptyDir
+        globalMounts:
+          - path: /.config
+
     defaultPodOptions:
       annotations:
         reloader.stakater.com/auto: "true"
