@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - envoy-gateway/ks.yaml
-  - cloudflared/ks.yaml
   - echo/ks.yaml
   - newt/ks.yaml
