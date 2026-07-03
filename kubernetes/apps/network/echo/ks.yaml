@@ -9,6 +9,7 @@ spec:
     labels:
       app.kubernetes.io/name: echo
   dependsOn:
+    - name: app-template
     - name: envoy-gateway
   path: ./kubernetes/apps/network/echo/app
   prune: true

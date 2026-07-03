@@ -9,8 +9,8 @@ spec:
     labels:
       app.kubernetes.io/name: newt
   dependsOn:
+    - name: app-template
     - name: external-secrets-clustersecretstore
-    - name: cloudflare-ddns
   path: ./kubernetes/apps/network/newt/app
   prune: true
   sourceRef:

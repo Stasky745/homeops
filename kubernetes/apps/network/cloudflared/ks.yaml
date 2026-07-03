@@ -10,8 +10,8 @@ spec:
     labels:
       app.kubernetes.io/name: cloudflared
   dependsOn:
+    - name: app-template
     - name: external-secrets-clustersecretstore
-    - name: cloudflare-ddns
   path: ./kubernetes/apps/network/cloudflared/app
   prune: true
   sourceRef:

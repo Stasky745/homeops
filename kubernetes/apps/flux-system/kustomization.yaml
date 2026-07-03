@@ -5,3 +5,4 @@ resources:
   - flux-operator/ks.yaml
   - flux-instance/ks.yaml
   - webhooks/ks.yaml
+  - sources/app-template/ks.yaml
