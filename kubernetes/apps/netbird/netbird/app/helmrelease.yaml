@@ -4,7 +4,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: netbird
-  namespace: network
+  namespace: netbird
 spec:
   interval: 1h
   chartRef:
@@ -34,14 +34,14 @@ spec:
       # CoreDNS forwards unknown queries upstream → nami → returns VPS IP for netbird.stasky.win.
       dnsPolicy: ClusterFirstWithHostNet
       automountServiceAccountToken: false
+      nodeName: luffy
       annotations:
         reloader.stakater.com/auto: "true"
 
     persistence:
       data:
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 1Gi
+        type: hostPath
+        hostPath: /var/lib/netbird
         globalMounts:
           - path: /var/lib/netbird
 
