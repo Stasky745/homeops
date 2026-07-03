@@ -31,9 +31,6 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
     persistence:
       config:
         type: emptyDir
@@ -49,7 +46,3 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
