@@ -35,7 +35,7 @@ spec:
       config:
         type: emptyDir
         globalMounts:
-          - path: /.config
+          - path: /root/.config
       blueprint:
         type: configMap
         name: newt-blueprint
