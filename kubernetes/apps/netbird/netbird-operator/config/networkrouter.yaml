@@ -1,0 +1,10 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: homelab
+  namespace: netbird
+spec:
+  dnsZoneRef:
+    name: homelab
+  workloadOverride:
+    replicas: 1
