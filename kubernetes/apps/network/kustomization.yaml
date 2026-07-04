@@ -5,3 +5,4 @@ resources:
   - envoy-gateway/ks.yaml
   - echo/ks.yaml
   - newt/ks.yaml
+  - netbird-operator/ks.yaml

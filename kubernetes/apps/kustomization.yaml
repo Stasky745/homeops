@@ -4,6 +4,6 @@ resources:
   - flux-system
   - kube-system
   - network
-  - netbird
+  # - netbird
   - external-secrets
   - cert-manager
