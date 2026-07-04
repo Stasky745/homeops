@@ -1,0 +1,7 @@
+apiVersion: netbird.io/v1
+kind: NBRoutingPeer
+metadata:
+  name: netbird
+  namespace: netbird
+spec:
+  replicas: 1

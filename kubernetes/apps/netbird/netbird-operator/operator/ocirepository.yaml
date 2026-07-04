@@ -11,25 +11,3 @@ spec:
   url: oci://ghcr.io/netbirdio/helm-charts/netbird-operator
   ref:
     tag: 0.7.0
----
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
-  name: netbird-operator
-  namespace: netbird
-spec:
-  interval: 1h
-  chartRef:
-    kind: OCIRepository
-    name: netbird-operator
-    namespace: netbird
-  values:
-    managementURL: "https://netbird.stasky.win"
-    cluster:
-      name: stasky
-      dns: svc.cluster.local
-    netbirdAPI:
-      keyFromSecret:
-        name: netbird-mgmt-api-key
-        key: NB_API_KEY
-    routingClientImage: "netbirdio/netbird:0.74.2"
