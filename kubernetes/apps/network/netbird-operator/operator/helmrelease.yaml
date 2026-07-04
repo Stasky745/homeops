@@ -10,7 +10,7 @@ spec:
   chartRef:
     kind: OCIRepository
     name: netbird-operator
-    namespace: netbird
+    namespace: network
   values:
     managementURL: "https://netbird.stasky.win"
     cluster:
