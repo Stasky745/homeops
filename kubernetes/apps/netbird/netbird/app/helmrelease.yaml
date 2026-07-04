@@ -26,13 +26,13 @@ spec:
               - secretRef:
                   name: netbird-credentials
             securityContext:
-              privileged: true
+              capabilities:
+                add:
+                  - NET_ADMIN
+                  - SYS_RESOURCE
+                  - SYS_ADMIN
 
     defaultPodOptions:
-      hostNetwork: true
-      # ClusterFirstWithHostNet is required with hostNetwork so CoreDNS is still used.
-      # CoreDNS forwards unknown queries upstream → nami → returns VPS IP for netbird.stasky.win.
-      dnsPolicy: ClusterFirstWithHostNet
       automountServiceAccountToken: false
       nodeSelector:
         kubernetes.io/hostname: luffy
