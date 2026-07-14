@@ -7,3 +7,4 @@ resources:
   - netbird
   - external-secrets
   - cert-manager
+  - rook-ceph

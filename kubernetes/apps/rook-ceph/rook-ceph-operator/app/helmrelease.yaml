@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rook-ceph-operator
+  namespace: rook-ceph
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: rook-ceph-operator
+  values:
+    crds:
+      enabled: true
+
+    # v1.20: CSI is now managed by the ceph-csi-operator subchart.
+    # Do not set individual csi.* image overrides — they are ignored.
+    csi:
+      installCsiOperator: true
+
+    monitoring:
+      enabled: false
+
+    enableDiscoveryDaemon: false
+
+    # Faster node failover than the Kubernetes default of 5 minutes
+    unreachableNodeTolerationSeconds: 5
+
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi

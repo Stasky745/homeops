@@ -96,6 +96,6 @@ tasks:
     cmds:
       - talhelper gencommand upgrade
         --config-file talos/talconfig.yaml
-        --secret-file talos/talsecret.sops.yaml
-        --talosconfig {{.TALOSCONFIG}}
-        | grep {{.NODE}} | sh
+        --out-dir talos/clusterconfig
+        --node {{.NODE}}
+        | sh
