@@ -12,11 +12,6 @@ spec:
     crds:
       enabled: true
 
-    # v1.20: CSI is now managed by the ceph-csi-operator subchart.
-    # Do not set individual csi.* image overrides — they are ignored.
-    csi:
-      installCsiOperator: true
-
     monitoring:
       enabled: false
 
