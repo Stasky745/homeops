@@ -8,3 +8,4 @@ resources:
   - external-secrets
   - cert-manager
   - rook-ceph
+  - food
