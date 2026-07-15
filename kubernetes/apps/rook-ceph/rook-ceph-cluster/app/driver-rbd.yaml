@@ -1,4 +1,4 @@
-apiVersion: csi.ceph.io/v1alpha1
+apiVersion: csi.ceph.io/v1
 kind: Driver
 metadata:
   name: rbd.csi.ceph.com
