@@ -1,0 +1,31 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pocket-id
+  namespace: flux-system
+spec:
+  targetNamespace: auth
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: pocket-id
+  dependsOn:
+    - name: app-template
+    - name: external-secrets-clustersecretstore
+    - name: rook-ceph-cluster
+  path: ./kubernetes/apps/auth/pocket-id/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: pocket-id
+      namespace: auth
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: pocket-id-secret
+      namespace: auth
