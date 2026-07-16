@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - rook-ceph-operator/ks.yaml
+  - ceph-csi-drivers/ks.yaml
   - rook-ceph-cluster/ks.yaml
