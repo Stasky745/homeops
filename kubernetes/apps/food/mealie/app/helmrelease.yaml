@@ -23,17 +23,20 @@ spec:
               TZ: Europe/Andorra
               BASE_URL: https://mealie.stasky.win
               ALLOW_SIGNUP: "false"
-              ALLOW_PASSWORD_LOGIN: "true"
+              ALLOW_PASSWORD_LOGIN: "false"
               SQLITE_MIGRATE_JOURNAL_WAL: "true"
               DEFAULT_GROUP: Home
               DEFAULT_HOUSEHOLD: Ribera
-              # OIDC — disabled until PocketID is configured
-              OIDC_AUTH_ENABLED: "false"
+              OIDC_AUTH_ENABLED: "true"
               OIDC_SIGNUP_ENABLED: "false"
+              OIDC_CONFIGURATION_URL: https://pocket-id.stasky.win/.well-known/openid-configuration
               OIDC_PROVIDER_NAME: PocketID
               OIDC_AUTO_REDIRECT: "true"
               OIDC_ADMIN_GROUP: admins
               OIDC_USER_CLAIM: email
+            envFrom:
+              - secretRef:
+                  name: mealie-oidc
             resources:
               requests:
                 cpu: 100m

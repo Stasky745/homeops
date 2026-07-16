@@ -10,6 +10,8 @@ spec:
       app.kubernetes.io/name: mealie
   dependsOn:
     - name: rook-ceph-cluster
+    - name: external-secrets-clustersecretstore
+    - name: pocket-id
   path: ./kubernetes/apps/food/mealie/app
   prune: true
   sourceRef:
@@ -22,4 +24,8 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: mealie
+      namespace: food
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: mealie-oidc
       namespace: food
