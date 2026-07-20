@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/stasky745/victus
-              tag: "0.0.2"
+              tag: "0.0.3"
             env:
               DB_DRIVER: sqlite
               DATABASE_URL: /data/victus.db
