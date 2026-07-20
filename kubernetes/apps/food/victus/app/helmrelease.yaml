@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victus
+  namespace: food
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      victus:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/stasky745/victus
+              tag: "0.0.1"
+            env:
+              DB_DRIVER: sqlite
+              DATABASE_URL: /data/victus.db
+              BASE_URL: https://victus.stasky.win
+              AUTH_MODE: oidc
+              OIDC_ISSUER_URL: https://pocket-id.stasky.win
+              OIDC_REDIRECT_URL: https://victus.stasky.win/auth/callback
+              MEALIE_BASE_URL: https://mealie.stasky.win
+              TRUST_PROXY_HEADERS: "true"
+            envFrom:
+              - secretRef:
+                  name: victus-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        fsGroup: 101
+
+    service:
+      app:
+        controller: victus
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+        retain: true
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+
+    route:
+      app:
+        hostnames:
+          - victus.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: victus
+                port: 8080
