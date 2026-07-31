@@ -26,9 +26,6 @@ spec:
     policy: sync
     txtOwnerId: homeops-external-dns
 
-    extraArgs:
-      - --cloudflare-proxied=false
-
     env:
       - name: CF_API_TOKEN
         valueFrom:
