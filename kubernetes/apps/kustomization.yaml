@@ -10,3 +10,5 @@ resources:
   - rook-ceph
   - food
   - auth
+  # - storage
+  - notifications

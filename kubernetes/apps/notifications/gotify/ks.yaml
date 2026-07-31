@@ -1,0 +1,32 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gotify
+  namespace: flux-system
+spec:
+  targetNamespace: notifications
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: gotify
+  dependsOn:
+    - name: app-template
+    - name: external-secrets-clustersecretstore
+    - name: pocket-id
+    - name: rook-ceph-cluster
+  path: ./kubernetes/apps/notifications/gotify/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: gotify
+      namespace: notifications
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: gotify-secret
+      namespace: notifications
