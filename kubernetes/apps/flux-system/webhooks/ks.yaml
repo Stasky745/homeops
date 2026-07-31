@@ -11,7 +11,7 @@ spec:
       app.kubernetes.io/name: *app
   dependsOn:
     - name: external-secrets-clustersecretstore
-    - name: envoy-gateway-config
+    - name: external-dns
   path: ./kubernetes/apps/flux-system/webhooks/app
   prune: true
   sourceRef:
@@ -29,4 +29,8 @@ spec:
     - apiVersion: notification.toolkit.fluxcd.io/v1
       kind: Receiver
       name: github-receiver
+      namespace: flux-system
+    - apiVersion: externaldns.k8s.io/v1alpha1
+      kind: DNSEndpoint
+      name: flux-webhook
       namespace: flux-system

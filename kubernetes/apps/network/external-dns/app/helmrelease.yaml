@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: network
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: external-dns
+  values:
+    provider:
+      name: cloudflare
+
+    sources:
+      - crd
+
+    domainFilters:
+      - stasky.win
+
+    policy: sync
+    txtOwnerId: homeops-external-dns
+
+    extraArgs:
+      - --cloudflare-proxied=false
+
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: external-dns-cloudflare
+            key: cloudflare-api-token
+
+    serviceAccount:
+      create: true
+
+    rbac:
+      create: true
+
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
