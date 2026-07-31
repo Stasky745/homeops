@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/stasky745/gbi
-              tag: "2.0.1"
+              tag: "v2.0.1"
             env:
               TZ: Europe/Andorra
               GBI_CONFIG: /etc/gbi/config.yaml
@@ -63,7 +63,9 @@ spec:
               limits:
                 memory: 256Mi
 
+        initContainers:
           gotenberg:
+            restartPolicy: Always
             image:
               repository: gotenberg/gotenberg
               tag: "8.34.0"
