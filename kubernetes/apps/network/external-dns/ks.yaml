@@ -23,6 +23,10 @@ spec:
       kind: HelmRelease
       name: external-dns
       namespace: network
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: HelmRepository
+      name: external-dns
+      namespace: network
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       name: external-dns-cloudflare
