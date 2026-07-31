@@ -13,7 +13,7 @@ This file tells Claude how to work in this repository.
 
 ## Cluster Overview
 
-**Talos Linux** `v1.13.4` · **Kubernetes** `v1.36.1` · **Flux** `v2.8.8` (via Flux Operator `v0.52.0`)
+**Talos Linux** `v1.13.4` · **Kubernetes** `v1.36.1` · **Flux** `v2.8.8` (via Flux Operator `v0.57.0`)
 
 ### Nodes
 
