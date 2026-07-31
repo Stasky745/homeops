@@ -12,3 +12,4 @@ resources:
   - auth
   # - storage
   - notifications
+  - documents

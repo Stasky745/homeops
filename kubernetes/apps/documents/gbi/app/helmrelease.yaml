@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gbi
+  namespace: documents
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      gbi:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/stasky745/gbi
+              tag: "2.0.1"
+            env:
+              TZ: Europe/Andorra
+              GBI_CONFIG: /etc/gbi/config.yaml
+              GBI_STORE_PATH: /var/lib/gbi/gbi.db
+              GBI_PORTAL_LISTEN: :8080
+              GBI_PORTAL_BASE_URL: https://gbi.stasky.win
+              GBI_PORTAL_AUTH_MODE: oidc
+              GBI_PORTAL_AUTH_ISSUER: https://pocket-id.stasky.win
+              GBI_PORTAL_AUTH_SESSION_TTL: 168h
+              GBI_PDF_GOTENBERG_URL: http://127.0.0.1:3000
+              GBI_GOTIFY_ENABLED: "true"
+              GBI_GOTIFY_SERVER: http://gotify.notifications.svc.cluster.local
+              GBI_SCHEDULE_ENABLED: "true"
+              GBI_SCHEDULE_TIMEZONE: Europe/Andorra
+              GBI_INVOICE_CURRENCY: EUR
+            envFrom:
+              - secretRef:
+                  name: gbi-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /readyz
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+
+          gotenberg:
+            image:
+              repository: gotenberg/gotenberg
+              tag: "8.34.0"
+            args:
+              - gotenberg
+              - --api-bind-ip=127.0.0.1
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      app:
+        controller: gbi
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          gbi:
+            app:
+              - path: /var/lib/gbi
+      config:
+        type: secret
+        name: gbi-config
+        advancedMounts:
+          gbi:
+            app:
+              - path: /etc/gbi/config.yaml
+                subPath: config.yaml
+                readOnly: true
+
+    route:
+      app:
+        hostnames:
+          - gbi.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: gbi
+                port: 8080
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
