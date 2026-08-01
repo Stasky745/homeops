@@ -74,4 +74,6 @@ spec:
                 port: 9000
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false

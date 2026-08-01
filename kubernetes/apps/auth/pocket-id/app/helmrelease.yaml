@@ -67,4 +67,6 @@ spec:
                 port: 1411
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false

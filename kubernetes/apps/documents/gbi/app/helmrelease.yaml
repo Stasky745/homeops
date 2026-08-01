@@ -120,6 +120,8 @@ spec:
                 port: 8080
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false
       securityContext:
         fsGroup: 10001

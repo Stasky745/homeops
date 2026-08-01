@@ -1,0 +1,11 @@
+# Note: check github.com/democratic-csi/charts for an OCI URL before using this.
+# If oci://ghcr.io/democratic-csi/charts/democratic-csi is available,
+# convert to OCIRepository + chartRef per homeops convention.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: democratic-csi
+  namespace: storage
+spec:
+  interval: 1h
+  url: https://democratic-csi.github.io/charts/

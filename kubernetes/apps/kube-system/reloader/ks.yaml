@@ -22,3 +22,7 @@ spec:
       kind: HelmRelease
       name: reloader
       namespace: kube-system
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      name: reloader
+      namespace: kube-system

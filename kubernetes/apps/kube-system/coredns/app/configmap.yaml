@@ -5,13 +5,15 @@ metadata:
   namespace: kube-system
 data:
   Corefile: |
-    stasky.win:53 {
-        hosts {
-            45.129.181.33 netbird.stasky.win
-            45.129.181.33 pangolin.stasky.win
-            45.129.181.33 vps.stasky.win
-            fallthrough
+    netbird.stasky.win pangolin.stasky.win vps.stasky.win:53 {
+        template IN A . {
+            answer "{{ .Name }} 60 IN A 45.129.181.33"
         }
+        template IN AAAA . {
+            rcode NOERROR
+        }
+    }
+    stasky.win:53 {
         template IN A stasky.win {
             answer "{{ .Name }} 60 IN A 192.168.42.100"
         }
