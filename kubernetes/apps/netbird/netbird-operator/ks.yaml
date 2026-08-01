@@ -49,3 +49,8 @@ spec:
   interval: 30m
   retryInterval: 1m
   timeout: 5m
+  healthChecks:
+    - apiVersion: netbird.io/v1alpha1
+      kind: NetworkRouter
+      name: stasky
+      namespace: netbird

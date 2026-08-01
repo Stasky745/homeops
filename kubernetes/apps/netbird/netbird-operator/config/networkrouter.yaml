@@ -1,0 +1,8 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: stasky
+  namespace: netbird
+spec:
+  dnsZoneRef:
+    name: svc.cluster.local
