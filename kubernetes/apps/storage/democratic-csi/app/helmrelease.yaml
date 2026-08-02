@@ -76,8 +76,6 @@ spec:
           detachedSnapshotsDatasetParentName: tank/k8s-snaps
           datasetEnableQuotas: true
           datasetEnableReservation: false
-          datasetProperties:
-            org.freebsd:swap: "0"
 
         nfs:
           # Set sharenfs property on each ZFS dataset — zfs-share exports it automatically
