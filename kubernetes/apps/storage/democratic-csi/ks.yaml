@@ -9,6 +9,7 @@ spec:
     labels:
       app.kubernetes.io/name: democratic-csi
   dependsOn:
+    - name: snapshot-controller
     - name: external-secrets-clustersecretstore
   path: ./kubernetes/apps/storage/democratic-csi/app
   prune: true
