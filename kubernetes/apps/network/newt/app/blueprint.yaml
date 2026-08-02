@@ -8,3 +8,12 @@ public-resources:
         hostname: webhook-receiver.flux-system.svc.cluster.local
         port: 80
         method: http
+  dockhand:
+    name: Dockhand
+    mode: http
+    full-domain: dockhand.stasky.win
+    targets:
+      - site: lanky-little-blue-penguin
+        hostname: dockhand.network.svc.cluster.local
+        port: 3000
+        method: http
