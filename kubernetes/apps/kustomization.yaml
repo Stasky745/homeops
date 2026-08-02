@@ -10,6 +10,6 @@ resources:
   - rook-ceph
   - food
   - auth
-  # - storage
+  - storage
   - notifications
   - documents
