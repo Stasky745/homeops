@@ -78,6 +78,7 @@ spec:
           datasetEnableReservation: false
 
         nfs:
+          shareHost: 192.168.42.20
           # Set sharenfs property on each ZFS dataset — zfs-share exports it automatically
           shareStrategy: setDatasetProperties
           shareStrategySetDatasetProperties:
