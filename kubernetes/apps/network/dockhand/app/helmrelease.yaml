@@ -21,6 +21,7 @@ spec:
               tag: "v1.0.40"
             env:
               DATA_DIR: /app/data
+              DISABLE_LOCAL_LOGIN: "true"
             resources:
               requests:
                 cpu: 50m
