@@ -6,3 +6,4 @@ resources:
   - echo/ks.yaml
   - newt/ks.yaml
   - external-dns/ks.yaml
+  - dockhand/ks.yaml

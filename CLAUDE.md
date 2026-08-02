@@ -348,6 +348,22 @@ kubernetes/apps/
 
 **All versions must be pinned.** Never use `latest`, a major-only tag (`:1`), or any floating tag for container images or chart versions. Always specify an exact version (e.g. `image.tag: "1.15.0"`, `version: "3.5.0"`).
 
+**Always add the Reloader annotation to any workload that references a Secret or ConfigMap.** This includes `envFrom`, `env.valueFrom.secretKeyRef/configMapKeyRef`, and volume mounts of type `secret` or `configMap`. Reloader watches the actual Secret/ConfigMap object, so ExternalSecret-managed secrets are covered automatically once they sync.
+
+- **app-template apps**: add to `defaultPodOptions.annotations`
+- **Other Helm charts**: use the chart's `podAnnotations` values key (e.g. `podAnnotations:` for external-dns, `connect.annotations:` for onepassword-connect)
+
+```yaml
+# app-template
+defaultPodOptions:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+# other charts
+podAnnotations:
+  reloader.stakater.com/auto: "true"
+```
+
 **Every HTTPRoute attached to the `ribera` gateway must include the Cloudflare proxy annotation** to explicitly declare whether Cloudflare should proxy the traffic:
 
 ```yaml
