@@ -6,6 +6,10 @@ metadata:
   namespace: documents
 spec:
   interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
   # First boot apt-installs the extra tesseract language packs, runs migrations
   # and builds the search index — comfortably past the 5m default.
   timeout: 15m
