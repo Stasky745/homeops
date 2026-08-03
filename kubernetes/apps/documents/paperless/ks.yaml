@@ -1,0 +1,34 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless
+  namespace: flux-system
+spec:
+  targetNamespace: documents
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: paperless
+  dependsOn:
+    - name: app-template
+    - name: external-secrets-clustersecretstore
+    - name: pocket-id
+    - name: redis-paperless
+    - name: rook-ceph-cluster
+    - name: democratic-csi
+  path: ./kubernetes/apps/documents/paperless/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: paperless
+      namespace: documents
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: paperless-secret
+      namespace: documents

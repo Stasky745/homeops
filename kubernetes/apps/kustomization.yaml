@@ -13,3 +13,4 @@ resources:
   - storage
   - notifications
   - documents
+  - database

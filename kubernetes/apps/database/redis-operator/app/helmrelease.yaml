@@ -1,0 +1,36 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: redis-operator
+  namespace: database
+spec:
+  interval: 1h
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: redis-operator
+    namespace: database
+  # The Redis/RedisCluster/RedisReplication CRDs ship in the chart's crds/ dir,
+  # so Flux has to be told to manage them explicitly on install and upgrade.
+  install:
+    crds: CreateReplace
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    redisOperator:
+      # All Redis instances live in this namespace — don't reconcile anywhere else.
+      watchNamespace: database
+      # masterSlaveAntiAffinity webhook is only needed for replication/cluster
+      # topologies; leaving it off avoids a cert-manager dependency here.
+      webhook: false
+    # Chart defaults request a guaranteed 500m CPU / 500Mi, which is far more
+    # than a single-standalone-Redis control loop needs on a 3-node homelab.
+    resources:
+      requests:
+        cpu: 20m
+        memory: 128Mi
+      limits:
+        memory: 256Mi

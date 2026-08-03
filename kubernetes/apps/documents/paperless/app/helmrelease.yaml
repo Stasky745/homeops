@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: paperless
+  namespace: documents
+spec:
+  interval: 1h
+  # First boot apt-installs the extra tesseract language packs, runs migrations
+  # and builds the search index — comfortably past the 5m default.
+  timeout: 15m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      paperless:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/paperless-ngx/paperless-ngx
+              tag: "3.0.5"
+            env:
+              TZ: Europe/Andorra
+              PAPERLESS_TIME_ZONE: Europe/Andorra
+              PAPERLESS_URL: https://paperless.stasky.win
+              PAPERLESS_PORT: "8000"
+
+              # --- storage -------------------------------------------------
+              # SQLite + the Tantivy search index stay on ceph-block: SQLite
+              # locking over NFS is unreliable. Documents go to the NAS, which
+              # is the restic-backed dataset.
+              PAPERLESS_DATA_DIR: /data/local
+              PAPERLESS_MEDIA_ROOT: /data/media
+              PAPERLESS_CONSUMPTION_DIR: /data/consume
+              # PAPERLESS_EXPORT_DIR is deliberately not set — the image's
+              # init-folders script hardcodes /usr/src/paperless/export when it
+              # creates and chowns directories, so relocating it would leave the
+              # export dir uncreated. The NAS export subdir is mounted there.
+
+              # --- consumption ---------------------------------------------
+              # The consume dir is NFS, where inotify is unreliable, so poll.
+              # Files arrive over the network, hence the longer stability delay.
+              PAPERLESS_CONSUMER_POLLING_INTERVAL: "60"
+              PAPERLESS_CONSUMER_STABILITY_DELAY: "15"
+              PAPERLESS_CONSUMER_RECURSIVE: "true"
+              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+
+              # --- OCR ------------------------------------------------------
+              # OCR_LANGUAGES is apt-installed by the image's init script on
+              # every container start (eng ships in the image; cat and spa are
+              # fetched at boot), so the pod needs egress to the Debian repos.
+              # OCR_LANGUAGE is the runtime set: the *first* code also selects
+              # the Tantivy stemmer and the NLTK model, and Catalan has neither,
+              # so eng leads.
+              PAPERLESS_OCR_LANGUAGES: "eng cat spa"
+              PAPERLESS_OCR_LANGUAGE: "eng+cat+spa"
+
+              # --- workers --------------------------------------------------
+              PAPERLESS_WEBSERVER_WORKERS: "2"
+              PAPERLESS_TASK_WORKERS: "2"
+
+              # --- broker ---------------------------------------------------
+              PAPERLESS_REDIS: redis://redis-paperless.database.svc.cluster.local:6379
+
+              # --- reverse proxy --------------------------------------------
+              # Envoy terminates TLS and forwards plain HTTP. Without this
+              # Django builds the OIDC redirect_uri as http://, which pocket-id
+              # rejects (ALLOW_INSECURE_CALLBACK_URLS is false).
+              PAPERLESS_PROXY_SSL_HEADER: '["HTTP_X_FORWARDED_PROTO","https"]'
+              PAPERLESS_ALLAUTH_TRUSTED_PROXY_COUNT: "1"
+
+              # --- authentication (pocket-id via django-allauth) -------------
+              PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+              PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+              PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+              PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
+              PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
+
+              # --- runtime user ---------------------------------------------
+              # The image has no USER directive: s6 starts as root, creates and
+              # chowns the data/media/consume/export dirs, then drops to this
+              # uid/gid. Do not set runAsUser on this container.
+              USERMAP_UID: "1000"
+              USERMAP_GID: "1000"
+            envFrom:
+              - secretRef:
+                  name: paperless-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  # First boot runs migrations and builds the search index.
+                  failureThreshold: 60
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 1Gi
+              limits:
+                memory: 3Gi
+
+    service:
+      app:
+        controller: paperless
+        ports:
+          http:
+            port: 8000
+
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        storageClass: ceph-block
+        retain: true
+        globalMounts:
+          - path: /data/local
+      nas:
+        accessMode: ReadWriteMany
+        size: 100Gi
+        storageClass: nfs
+        retain: true
+        globalMounts:
+          - path: /data/media
+            subPath: media
+          - path: /data/consume
+            subPath: consume
+          - path: /usr/src/paperless/export
+            subPath: export
+
+    route:
+      app:
+        hostnames:
+          - paperless.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: paperless
+                port: 8000
+
+    defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
+      automountServiceAccountToken: false

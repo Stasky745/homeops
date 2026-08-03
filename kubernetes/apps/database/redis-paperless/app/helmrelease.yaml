@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  # The release name becomes the Redis CR name, which in turn becomes the
+  # Service name the operator creates:
+  #   redis-paperless.database.svc.cluster.local:6379
+  name: redis-paperless
+  namespace: database
+spec:
+  interval: 1h
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: redis-paperless
+    namespace: database
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    redisStandalone:
+      image: quay.io/opstree/redis
+      tag: v7.0.15
+      imagePullPolicy: IfNotPresent
+      serviceType: ClusterIP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+    # Paperless only uses Redis as the Celery broker and result backend, so the
+    # contents are disposable — but the operator's StatefulSet requires a PVC,
+    # and losing it mid-flight would strand in-progress consumption tasks.
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
