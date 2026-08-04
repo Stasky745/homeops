@@ -14,24 +14,19 @@ spec:
     controllers:
       syncthing:
         initContainers:
-          # Writes config.xml with hashed GUI credentials on first boot only.
-          # Skipped if config.xml already exists (idempotent).
-          # To rotate credentials: delete /var/syncthing/config.xml and restart the pod.
+          # Writes/updates config.xml with hashed GUI credentials before each start.
+          # generate loads existing config if present — folders and device config are preserved.
+          # Runs unconditionally so credential rotation (1Password → ESO → Reloader) works.
           init-config:
             image:
               repository: syncthing/syncthing
               tag: "2.1.2"
             command:
-              - /bin/sh
-              - -c
-              - |
-                if [ ! -f /var/syncthing/config.xml ]; then
-                  syncthing generate \
-                    --home=/var/syncthing \
-                    --gui-user="$STGUIUSER" \
-                    --gui-password="$STGUIPASSWORD" \
-                    --no-default-folder
-                fi
+              - syncthing
+              - generate
+              - --home=/var/syncthing
+              - --gui-user=$(STGUIUSER)
+              - --gui-password=$(STGUIPASSWORD)
             env:
               STGUIUSER:
                 valueFrom:
