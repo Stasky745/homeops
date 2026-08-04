@@ -1,0 +1,13 @@
+# Shared consume directory: Syncthing drops files here, Paperless picks them up.
+# Referenced by: syncthing (existingClaim), paperless (existingClaim)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: consume
+  namespace: documents
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-no-backup
