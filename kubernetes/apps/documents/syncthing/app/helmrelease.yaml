@@ -13,6 +13,37 @@ spec:
   values:
     controllers:
       syncthing:
+        initContainers:
+          # Writes config.xml with hashed GUI credentials on first boot only.
+          # Skipped if config.xml already exists (idempotent).
+          # To rotate credentials: delete /var/syncthing/config.xml and restart the pod.
+          init-config:
+            image:
+              repository: syncthing/syncthing
+              tag: "2.1.2"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                if [ ! -f /var/syncthing/config.xml ]; then
+                  syncthing generate \
+                    --home=/var/syncthing \
+                    --gui-user="$STGUIUSER" \
+                    --gui-password="$STGUIPASSWORD" \
+                    --no-default-folder
+                fi
+            env:
+              STGUIUSER:
+                valueFrom:
+                  secretKeyRef:
+                    name: syncthing-secret
+                    key: username
+              STGUIPASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: syncthing-secret
+                    key: password
+
         containers:
           app:
             image:
@@ -22,6 +53,14 @@ spec:
               TZ: Europe/Andorra
               # Bind GUI to all interfaces so the Service can reach it
               STGUIADDRESS: 0.0.0.0:8384
+              # Disable in-process upgrade checks — image tag controls the version
+              STNOUPGRADE: "1"
+              # API key for REST access without GUI session (automation, health checks)
+              STGUIAPIKEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: syncthing-secret
+                    key: api_key
             probes:
               liveness:
                 enabled: true
@@ -101,4 +140,6 @@ spec:
           - path: /data/consume
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false
