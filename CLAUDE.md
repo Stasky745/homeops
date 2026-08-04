@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> This is a submodule of the stasky homelab monorepo. All working methods and rules from the root `CLAUDE.md` apply here — context7 first for any tool/library/API, official docs before source code, check component version compatibility early, always add the Reloader annotation, Obsidian note conventions, and the backlog rule. This file covers homeops-specific context only.
+
 This file tells Claude how to work in this repository.
 
 ## Critical Rules
