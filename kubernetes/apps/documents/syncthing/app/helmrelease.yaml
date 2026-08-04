@@ -17,16 +17,19 @@ spec:
           # Writes/updates config.xml with hashed GUI credentials before each start.
           # generate loads existing config if present — folders and device config are preserved.
           # Runs unconditionally so credential rotation (1Password → ESO → Reloader) works.
+          # Also injects <authMode>static</authMode> which generate omits but v2 requires.
           init-config:
             image:
               repository: syncthing/syncthing
               tag: "2.1.2"
             command:
-              - syncthing
-              - generate
-              - --home=/var/syncthing
-              - --gui-user=$(STGUIUSER)
-              - --gui-password=$(STGUIPASSWORD)
+              - /bin/sh
+              - -c
+              - |
+                syncthing generate --home=/var/syncthing \
+                  --gui-user="$STGUIUSER" --gui-password="$STGUIPASSWORD"
+                grep -q '<authMode>' /var/syncthing/config.xml || \
+                  sed -i 's|</gui>|<authMode>static</authMode></gui>|' /var/syncthing/config.xml
             env:
               STGUIUSER:
                 valueFrom:
