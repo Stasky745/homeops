@@ -13,35 +13,6 @@ spec:
   values:
     controllers:
       syncthing:
-        initContainers:
-          # Writes/updates config.xml with hashed GUI credentials before each start.
-          # generate loads existing config if present — folders and device config are preserved.
-          # Runs unconditionally so credential rotation (1Password → ESO → Reloader) works.
-          # Also injects <authMode>static</authMode> which generate omits but v2 requires.
-          init-config:
-            image:
-              repository: syncthing/syncthing
-              tag: "2.1.2"
-            command:
-              - /bin/sh
-              - -c
-              - |
-                syncthing generate --home=/var/syncthing \
-                  --gui-user="$STGUIUSER" --gui-password="$STGUIPASSWORD"
-                grep -q '<authMode>' /var/syncthing/config.xml || \
-                  sed -i 's|</gui>|<authMode>static</authMode></gui>|' /var/syncthing/config.xml
-            env:
-              STGUIUSER:
-                valueFrom:
-                  secretKeyRef:
-                    name: syncthing-secret
-                    key: username
-              STGUIPASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: syncthing-secret
-                    key: password
-
         containers:
           app:
             image:
@@ -53,12 +24,6 @@ spec:
               STGUIADDRESS: 0.0.0.0:8384
               # Disable in-process upgrade checks — image tag controls the version
               STNOUPGRADE: "1"
-              # API key for REST access without GUI session (automation, health checks)
-              STGUIAPIKEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: syncthing-secret
-                    key: api_key
             probes:
               liveness:
                 enabled: true
@@ -138,6 +103,4 @@ spec:
           - path: /data/consume
 
     defaultPodOptions:
-      annotations:
-        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false

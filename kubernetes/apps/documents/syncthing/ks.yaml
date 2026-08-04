@@ -21,7 +21,3 @@ spec:
       kind: HelmRelease
       name: syncthing
       namespace: documents
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      name: syncthing-secret
-      namespace: documents
