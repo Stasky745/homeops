@@ -66,5 +66,4 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: echo
-                port: *port
+              - identifier: app

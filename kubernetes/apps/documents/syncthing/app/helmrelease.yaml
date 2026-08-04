@@ -76,8 +76,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: syncthing
-                port: 8384
+              - identifier: app
 
     persistence:
       # Syncthing config, device identity, and index DB — small, needs no RWX

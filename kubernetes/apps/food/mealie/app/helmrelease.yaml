@@ -70,8 +70,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: mealie
-                port: 9000
+              - identifier: app
 
     defaultPodOptions:
       annotations:

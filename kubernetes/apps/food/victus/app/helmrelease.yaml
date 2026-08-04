@@ -100,5 +100,4 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: victus
-                port: 8080
+              - identifier: app

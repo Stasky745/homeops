@@ -63,8 +63,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: pocket-id
-                port: 1411
+              - identifier: app
 
     defaultPodOptions:
       annotations:

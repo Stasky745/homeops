@@ -68,8 +68,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: gotify
-                port: 80
+              - identifier: app
 
     defaultPodOptions:
       annotations:

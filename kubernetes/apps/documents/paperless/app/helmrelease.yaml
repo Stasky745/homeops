@@ -164,8 +164,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: paperless
-                port: 8000
+              - identifier: app
 
     defaultPodOptions:
       annotations:

@@ -55,8 +55,7 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
-              - name: dockhand
-                port: 3000
+              - identifier: app
 
     defaultPodOptions:
       automountServiceAccountToken: false
