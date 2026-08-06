@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sabnzbd
+  namespace: media
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      sabnzbd:
+        strategy: Recreate
+        containers:
+          gluetun:
+            image:
+              repository: qmcgaw/gluetun
+              tag: "v3.40.0"
+            env:
+              VPN_SERVICE_PROVIDER: mullvad
+              VPN_TYPE: wireguard
+              SERVER_CITIES: Prague,Vienna,Berlin,Frankfurt
+              OWNED_ONLY: "yes"
+              FIREWALL_OUTBOUND_SUBNETS: "10.244.0.0/22,192.168.42.0/24"
+              FIREWALL_INPUT_PORTS: "8080"
+            envFrom:
+              - secretRef:
+                  name: sabnzbd-vpn-secret
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+
+          app:
+            image:
+              repository: ghcr.io/linuxserver/sabnzbd
+              tag: "5.0.4-ls265"
+            env:
+              PUID: "1000"
+              PGID: "1000"
+              TZ: Europe/Andorra
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+
+    defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
+      automountServiceAccountToken: false
+
+    service:
+      app:
+        controller: sabnzbd
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          sabnzbd:
+            app:
+              - path: /config
+      downloads:
+        existingClaim: media-data
+        advancedMounts:
+          sabnzbd:
+            app:
+              - path: /downloads
+                subPath: downloads/nzb
+              - path: /incomplete
+                subPath: downloads/incomplete
