@@ -22,7 +22,7 @@ spec:
             env:
               VPN_SERVICE_PROVIDER: mullvad
               VPN_TYPE: wireguard
-              SERVER_CITIES: Prague,Berlin,Amsterdam
+              SERVER_CITIES: Prague,Vienna,Berlin,Frankfurt
               OWNED_ONLY: yes
               FIREWALL_OUTBOUND_SUBNETS: "10.244.0.0/22,192.168.42.0/24"
             envFrom:
