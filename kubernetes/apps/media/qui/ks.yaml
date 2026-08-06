@@ -10,6 +10,7 @@ spec:
       app.kubernetes.io/name: qui
   dependsOn:
     - name: app-template
+    - name: external-secrets-clustersecretstore
     - name: rook-ceph-cluster
     - name: envoy-gateway-config
   path: ./kubernetes/apps/media/qui/app
@@ -24,4 +25,8 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: qui
+      namespace: media
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: qui-oidc
       namespace: media

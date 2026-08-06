@@ -23,6 +23,13 @@ spec:
               QUI__HOST: 0.0.0.0
               QUI__PORT: "8080"
               QUI__LOG_LEVEL: INFO
+              QUI__OIDC_ENABLED: "true"
+              QUI__OIDC_ISSUER: https://pocket-id.stasky.win
+              QUI__OIDC_REDIRECT_URL: https://qui.stasky.win/api/auth/oidc/callback
+              QUI__OIDC_DISABLE_BUILT_IN_LOGIN: "true"
+            envFrom:
+              - secretRef:
+                  name: qui-oidc
             resources:
               requests:
                 cpu: 10m
