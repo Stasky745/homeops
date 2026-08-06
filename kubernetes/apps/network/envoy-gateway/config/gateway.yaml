@@ -95,3 +95,13 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: ribera-cat-wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All

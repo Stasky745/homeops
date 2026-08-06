@@ -12,3 +12,17 @@ spec:
   dnsNames:
     - "stasky.win"
     - "*.stasky.win"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ribera-cat-wildcard
+  namespace: network
+spec:
+  secretName: ribera-cat-wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "ribera.cat"
+    - "*.ribera.cat"

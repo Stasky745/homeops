@@ -81,3 +81,7 @@ spec:
       kind: ExternalSecret
       name: cloudflare-api-token
       namespace: cert-manager
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: ribera-cat-dns-token
+      namespace: cert-manager

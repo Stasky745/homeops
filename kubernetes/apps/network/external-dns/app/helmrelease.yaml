@@ -25,6 +25,7 @@ spec:
 
     domainFilters:
       - stasky.win
+      - ribera.cat
 
     policy: sync
     txtOwnerId: homeops-external-dns

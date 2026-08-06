@@ -14,3 +14,4 @@ resources:
   - notifications
   - documents
   - database
+  - media

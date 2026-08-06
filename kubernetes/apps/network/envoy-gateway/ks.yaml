@@ -49,3 +49,7 @@ spec:
       kind: Certificate
       name: stasky-win-wildcard
       namespace: network
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      name: ribera-cat-wildcard
+      namespace: network

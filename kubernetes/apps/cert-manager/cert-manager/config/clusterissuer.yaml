@@ -14,6 +14,17 @@ spec:
             apiTokenSecretRef:
               name: cloudflare-api-token
               key: api-token
+        selector:
+          dnsZones:
+            - stasky.win
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: ribera-cat-dns-token
+              key: api-token
+        selector:
+          dnsZones:
+            - ribera.cat
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -31,3 +42,14 @@ spec:
             apiTokenSecretRef:
               name: cloudflare-api-token
               key: api-token
+        selector:
+          dnsZones:
+            - stasky.win
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: ribera-cat-dns-token
+              key: api-token
+        selector:
+          dnsZones:
+            - ribera.cat
