@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sonarr-anime
+  namespace: media
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      sonarr-anime:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/linuxserver/sonarr
+              tag: "4.0.19.2979-ls320"
+            env:
+              PUID: "1000"
+              PGID: "1000"
+              UMASK: "002"
+              TZ: Europe/Andorra
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
+
+    service:
+      app:
+        controller: sonarr-anime
+        ports:
+          http:
+            port: 8989
+
+    route:
+      app:
+        hostnames:
+          - sonarr-anime.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        storageClass: ceph-block
+        retain: true
+        globalMounts:
+          - path: /config
+      media:
+        existingClaim: media-data
+        globalMounts:
+          - path: /data

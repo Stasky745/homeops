@@ -8,6 +8,8 @@ resources:
   - qui/ks.yaml
   - prowlarr/ks.yaml
   - sonarr/ks.yaml
+  - sonarr-anime/ks.yaml
   - radarr/ks.yaml
+  - radarr-anime/ks.yaml
   - bazarr/ks.yaml
   - profilarr/ks.yaml

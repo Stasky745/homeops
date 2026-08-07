@@ -1,17 +1,18 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: gluetun-test
+  name: radarr-anime
   namespace: flux-system
 spec:
   targetNamespace: media
   commonMetadata:
     labels:
-      app.kubernetes.io/name: gluetun-test
+      app.kubernetes.io/name: radarr-anime
   dependsOn:
     - name: app-template
-    - name: external-secrets-clustersecretstore
-  path: ./kubernetes/apps/media/gluetun-test/app
+    - name: rook-ceph-cluster
+    - name: envoy-gateway-config
+  path: ./kubernetes/apps/media/radarr-anime/app
   prune: true
   sourceRef:
     kind: GitRepository
@@ -22,9 +23,5 @@ spec:
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
-      name: gluetun-test
-      namespace: media
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      name: gluetun-test-vpn-secret
+      name: radarr-anime
       namespace: media
