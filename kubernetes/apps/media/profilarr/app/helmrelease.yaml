@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: profilarr
+  namespace: media
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      profilarr:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/dictionarry-hub/profilarr
+              tag: "2.0.9"
+            env:
+              PUID: "1000"
+              PGID: "1000"
+              UMASK: "002"
+              TZ: Europe/Andorra
+              HOST: 0.0.0.0
+              PORT: "6868"
+              ORIGIN: https://profilarr.stasky.win
+              AUTH: oidc
+              OIDC_DISCOVERY_URL: https://pocket-id.stasky.win/.well-known/openid-configuration
+              PARSER_HOST: localhost
+              PARSER_PORT: "5000"
+            envFrom:
+              - secretRef:
+                  name: profilarr-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+          parser:
+            image:
+              repository: ghcr.io/dictionarry-hub/profilarr-parser
+              tag: "2.0.9"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
+      automountServiceAccountToken: false
+
+    service:
+      app:
+        controller: profilarr
+        ports:
+          http:
+            port: 6868
+
+    route:
+      app:
+        hostnames:
+          - profilarr.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          profilarr:
+            app:
+              - path: /config
