@@ -54,6 +54,7 @@ spec:
             env:
               PUID: "1000"
               PGID: "1000"
+              UMASK: "002"
               TZ: Europe/Andorra
             resources:
               requests:
@@ -88,12 +89,9 @@ spec:
           sabnzbd:
             app:
               - path: /config
-      downloads:
+      media:
         existingClaim: media-data
         advancedMounts:
           sabnzbd:
             app:
-              - path: /downloads
-                subPath: downloads/nzb
-              - path: /incomplete
-                subPath: downloads/incomplete
+              - path: /data

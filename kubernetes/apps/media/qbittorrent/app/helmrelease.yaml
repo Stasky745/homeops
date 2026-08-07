@@ -54,6 +54,7 @@ spec:
             env:
               PUID: "1000"
               PGID: "1000"
+              UMASK: "002"
               TZ: Europe/Andorra
               WEBUI_PORT: "8080"
             resources:
@@ -89,10 +90,9 @@ spec:
           qbittorrent:
             app:
               - path: /config
-      downloads:
+      media:
         existingClaim: media-data
         advancedMounts:
           qbittorrent:
             app:
-              - path: /downloads
-                subPath: downloads/torrents
+              - path: /data
