@@ -51,7 +51,7 @@ spec:
             namespace: network
             sectionName: https
         hostnames:
-          - jellyseerr.stasky.win
+          - seerr.stasky.win
 
     resources:
       requests:
