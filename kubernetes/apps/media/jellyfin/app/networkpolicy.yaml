@@ -1,0 +1,56 @@
+---
+# Jellyfin is the only publicly-exposed app in the `media` namespace (via Pangolin
+# and the ribera gateway). This policy confines it: it can be reached from the
+# gateway, and can reach DNS, the NAS and the public internet — but nothing else
+# in the cluster. A compromise cannot pivot to sonarr/radarr/qbittorrent.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: jellyfin-isolation
+  namespace: media
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: jellyfin
+
+  ingress:
+    # Envoy Gateway only
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+
+  egress:
+    # Cluster DNS
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+
+    # NAS — NFS for the media volume
+    - toCIDR:
+        - 192.168.42.20/32
+      toPorts:
+        - ports:
+            - port: "2049"
+              protocol: TCP
+
+    # Public internet for metadata/artwork providers (TMDb, TVDb, etc).
+    # RFC1918 ranges are excluded so this cannot reach LAN or cluster services.
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP

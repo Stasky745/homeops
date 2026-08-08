@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jellyfin
+  namespace: media
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      jellyfin:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: jellyfin/jellyfin
+              tag: "10.11.11"
+            env:
+              TZ: Europe/Andorra
+              JELLYFIN_PublishedServerUrl: https://jellyfin.ribera.cat
+              # Avoids SQLite advisory-locking issues on non-local storage
+              DOTNET_SYSTEM_IO_DISABLEFILELOCKING: "true"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8096
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8096
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8096
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 200m
+                memory: 1Gi
+                ephemeral-storage: 2Gi
+              limits:
+                memory: 4Gi
+                # Caps transcode scratch on the node OS disk. emptyDir sizeLimit
+                # is only enforced for tmpfs, so this is the real guard.
+                ephemeral-storage: 16Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        controller: jellyfin
+        ports:
+          http:
+            port: 8096
+
+    route:
+      app:
+        labels:
+          external-dns.stasky.win/publish: "true"
+        annotations:
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames:
+          - jellyfin.ribera.cat
+        parentRefs:
+          - name: ribera
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /config
+      metadata:
+        accessMode: ReadWriteOnce
+        size: 50Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /config/metadata
+      cache:
+        type: emptyDir
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /cache
+      transcode:
+        type: emptyDir
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /config/transcodes
+      media:
+        existingClaim: media-data
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /media
+                subPath: media
+                readOnly: true
+      # Intel UHD 630 (Coffee Lake) render node for VAAPI.
+      # On Talos, renderD128 is mode 0666 root:root, so no supplementalGroups
+      # is needed — any UID can open it. card0 is 0600 and unused by VAAPI,
+      # so only the render node is exposed.
+      dri:
+        type: hostPath
+        hostPath: /dev/dri/renderD128
+        hostPathType: CharDevice
+        advancedMounts:
+          jellyfin:
+            app:
+              - path: /dev/dri/renderD128

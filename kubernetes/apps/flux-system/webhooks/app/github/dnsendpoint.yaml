@@ -3,6 +3,8 @@ kind: DNSEndpoint
 metadata:
   name: flux-webhook
   namespace: flux-system
+  labels:
+    external-dns.stasky.win/publish: "true"
 spec:
   endpoints:
     - dnsName: flux-webhook.stasky.win

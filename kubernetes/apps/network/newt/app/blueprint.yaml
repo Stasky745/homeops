@@ -17,3 +17,12 @@ public-resources:
         hostname: dockhand.network.svc.cluster.local
         port: 3000
         method: http
+  jellyfin:
+    name: Jellyfin
+    mode: http
+    full-domain: jellyfin.ribera.cat
+    targets:
+      - site: lanky-little-blue-penguin
+        hostname: jellyfin.media.svc.cluster.local
+        port: 8096
+        method: http

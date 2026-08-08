@@ -22,6 +22,18 @@ spec:
 
     sources:
       - crd
+      - gateway-httproute
+
+    # Scope the Gateway API source to the `ribera` gateway only. HTTPRoutes on
+    # the `stasky` gateway are covered by the *.stasky.win wildcard and must not
+    # get individual records.
+    #
+    # label-filter makes publication opt-in: nothing gets a record unless it is
+    # labelled. Applies to ALL sources, so DNSEndpoints need the label too.
+    extraArgs:
+      - --gateway-name=ribera
+      - --gateway-namespace=network
+      - --label-filter=external-dns.stasky.win/publish=true
 
     domainFilters:
       - stasky.win

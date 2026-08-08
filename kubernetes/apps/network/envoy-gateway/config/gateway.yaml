@@ -81,6 +81,10 @@ kind: Gateway
 metadata:
   name: ribera
   namespace: network
+  annotations:
+    # external-dns reads target from the Gateway, not the Route. Without it,
+    # the private LB IP would be published publicly.
+    external-dns.alpha.kubernetes.io/target: pangolin.stasky.win
 spec:
   gatewayClassName: envoy
   infrastructure:

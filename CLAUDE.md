@@ -19,15 +19,25 @@ This file tells Claude how to work in this repository.
 
 ### Nodes
 
-| Hostname | IP | Role | Disk |
-|---|---|---|---|
-| sanji | 192.168.42.13 | control-plane | /dev/nvme0n1 |
-| zoro | 192.168.42.14 | control-plane | /dev/nvme0n1 |
-| luffy | 192.168.42.15 | control-plane | /dev/nvme0n1 |
+| Hostname | IP | Role | OS disk (install) | Ceph OSD disk |
+|---|---|---|---|---|
+| sanji | 192.168.42.13 | control-plane | /dev/nvme1n1 | /dev/nvme0n1 |
+| zoro | 192.168.42.14 | control-plane | /dev/nvme1n1 | /dev/nvme0n1 |
+| luffy | 192.168.42.15 | control-plane | /dev/nvme1n1 | /dev/nvme0n1 |
+
+> **Do not confuse the two disks.** Talos installs to **`/dev/nvme1n1`** (`installDisk` in `talos/talconfig.yaml`). **`/dev/nvme0n1`** is the Samsung 1TB holding the Rook-Ceph OSDs (`deviceFilter: "^nvme0n1$"` in the rook-ceph-cluster HelmRelease). Targeting `nvme0n1` with an install or wipe destroys all Ceph data. The disks were swapped at some point and this table previously listed the wrong one.
 
 All three nodes are control-plane only (`allowSchedulingOnControlPlanes: true`). There are no dedicated workers. All nodes use the same Talos factory image:
 `factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245`
-(includes `iscsi_tcp` and `dm_crypt` kernel extensions for Longhorn storage).
+
+Schematic contents (verify with `curl -s https://factory.talos.dev/schematics/<id>`):
+
+| Extension | Purpose |
+|---|---|
+| `siderolabs/iscsi-tools` | iSCSI support — required by Ceph CSI |
+| `siderolabs/util-linux-tools` | util-linux userspace utilities |
+
+The `iscsi_tcp`, `dm_crypt` and `rbd` entries under `machine.kernel.modules` are *kernel modules*, not extensions — a separate mechanism.
 
 Primary network interface on all nodes: `eno1`
 

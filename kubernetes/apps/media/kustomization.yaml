@@ -13,3 +13,4 @@ resources:
   - radarr-anime/ks.yaml
   - bazarr/ks.yaml
   - profilarr/ks.yaml
+  - jellyfin/ks.yaml
