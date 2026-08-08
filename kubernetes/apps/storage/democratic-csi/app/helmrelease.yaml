@@ -25,9 +25,12 @@ spec:
     csiDriver:
       name: nfs.democratic-csi.robin
 
-    # Two StorageClasses:
-    #   nfs            → tank/k8s       (restic-backed; use for configs, databases, app state)
-    #   nfs-no-backup  → tank/k8s-bulk  (snapshots only; use for Jellyfin library, downloads)
+    # Both classes provision under driver.config.zfs.datasetParentName — democratic-csi
+    # reads that from the driver config only, never from StorageClass parameters, so a
+    # per-class parent would need a second driver instance. Backup scope is instead a
+    # ZFS property that robin's restic job filters on; datasetProperties IS per-class.
+    #   nfs            → custom:backup=true   configs, databases, app state
+    #   nfs-no-backup  → custom:backup=false  media library, downloads
     storageClasses:
       - name: nfs
         defaultClass: false
@@ -36,7 +39,10 @@ spec:
         allowVolumeExpansion: true
         parameters:
           fsType: nfs
-          datasetParentName: tank/k8s
+          config: |
+            zfs:
+              datasetProperties:
+                "custom:backup": "true"
       - name: nfs-no-backup
         defaultClass: false
         reclaimPolicy: Retain
@@ -44,7 +50,10 @@ spec:
         allowVolumeExpansion: true
         parameters:
           fsType: nfs
-          datasetParentName: tank/k8s-bulk
+          config: |
+            zfs:
+              datasetProperties:
+                "custom:backup": "false"
 
     volumeSnapshotClasses:
       - name: zfs-nfs
@@ -70,7 +79,7 @@ spec:
               zpool: /sbin/zpool
               sudo: /usr/bin/sudo
               exportfs: /usr/sbin/exportfs
-          # Default parent — overridden per StorageClass via parameters.datasetParentName
+          # The only parent. Not overridable per StorageClass — see storageClasses above.
           datasetParentName: tank/k8s
           # Detached snapshots are stored here (separate from live datasets)
           detachedSnapshotsDatasetParentName: tank/k8s-snaps
