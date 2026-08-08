@@ -55,11 +55,11 @@ spec:
             resources:
               requests:
                 cpu: 200m
-                memory: 1Gi
+                memory: 10Gi
                 ephemeral-storage: 2Gi
                 gpu.intel.com/i915: 1
               limits:
-                memory: 4Gi
+                memory: 10Gi
                 gpu.intel.com/i915: 1
                 # Caps transcode scratch on the node OS disk. emptyDir sizeLimit
                 # is only enforced for tmpfs, so this is the real guard.
