@@ -9,6 +9,7 @@ spec:
     labels:
       app.kubernetes.io/name: radarr-anime
   dependsOn:
+    - name: arr-scripts
     - name: app-template
     - name: rook-ceph-cluster
     - name: envoy-gateway-config

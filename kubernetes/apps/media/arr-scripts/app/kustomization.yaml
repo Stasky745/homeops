@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: media
+
+# One ConfigMap per script, named after it.
+configMapGenerator:
+  - name: anime-tracks
+    files:
+      - anime-tracks.py
+
+# Consumers live in other Flux Kustomizations and reference this by name,
+# so the hash suffix must not be applied. Reloader handles rollout on change.
+generatorOptions:
+  disableNameSuffixHash: true

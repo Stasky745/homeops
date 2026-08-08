@@ -79,6 +79,19 @@ spec:
           http:
             port: 8080
 
+    # Reachable through gluetun via FIREWALL_INPUT_PORTS: "8080".
+    route:
+      app:
+        hostnames:
+          - nzb.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+
     persistence:
       config:
         accessMode: ReadWriteOnce

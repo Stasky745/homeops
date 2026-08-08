@@ -24,6 +24,8 @@ spec:
               PGID: "1000"
               UMASK: "002"
               TZ: Europe/Andorra
+              DOCKER_MODS: linuxserver/mods:universal-package-install
+              INSTALL_PACKAGES: mkvtoolnix|python3
             probes:
               liveness:
                 enabled: true
@@ -42,6 +44,8 @@ spec:
                 memory: 1Gi
 
     defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
       automountServiceAccountToken: false
 
     service:
@@ -64,6 +68,12 @@ spec:
               - identifier: app
 
     persistence:
+      anime-tracks:
+        type: configMap
+        name: anime-tracks
+        defaultMode: 0555
+        globalMounts:
+          - path: /config/scripts
       config:
         accessMode: ReadWriteOnce
         size: 2Gi
