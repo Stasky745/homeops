@@ -351,6 +351,34 @@ external-secrets-clustersecretstore
 
 ## Kubernetes / FluxCD Conventions
 
+### Comments
+
+Comment only when the reason is non-obvious and not recoverable from the code. Keep it to one line where possible; never write a paragraph. State the specific fact, not the background.
+
+```yaml
+# Good — the non-obvious constraint, nothing else
+- -shared-dev-num
+- "4"   # jellyfin + immich (transcode + OpenVINO ML)
+
+# Bad — explains mechanism the reader can look up, restates the code
+# A hostPath device mount makes the node visible but does NOT add a cgroup
+# allow rule, so open() returns EPERM. This plugin advertises the resource
+# and makes the runtime do both, which is the only way to reach the GPU
+# without running the consumer privileged.
+```
+
+Mechanism and rationale belong in this file or an Obsidian note, linked if needed. Manifests carry the facts a future editor would otherwise break.
+
+### Keep resources inside the HelmRelease
+
+Anything app-template supports as a first-class value goes in HelmRelease `values`, not a sibling manifest: `serviceAccount`, `rbac`, `networkpolicies`, `service`, `route`, `persistence`, `configMaps`, `secrets`, `podMonitor`, `serviceMonitor`.
+
+Two exceptions stay as separate files:
+- **Long ConfigMaps** — multi-hundred-line config buries the workload spec.
+- **Kinds needing `rawResources`** — that key is an escape hatch; routing a manifest through it gains nothing over a plain file. Notably **CiliumNetworkPolicy**, since `networkpolicies` only emits `networking.k8s.io/v1` (see `media/jellyfin`).
+
+The key is **`networkpolicies`**, all lowercase — `networkPolicies` is silently ignored. Resource naming: a single item gets no suffix, multiple get `-<key>`; use `suffix:` or `forceRename:` when a stable name matters.
+
 ### App structure
 
 Applications live under `kubernetes/apps/<namespace>/<app-name>/`. A typical app looks like:

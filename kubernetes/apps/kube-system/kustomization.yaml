@@ -4,3 +4,4 @@ resources:
   - cilium/ks.yaml
   - reloader/ks.yaml
   - coredns/ks.yaml
+  - intel-gpu-plugin/ks.yaml

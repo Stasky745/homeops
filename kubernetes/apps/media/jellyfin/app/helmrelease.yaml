@@ -57,8 +57,10 @@ spec:
                 cpu: 200m
                 memory: 1Gi
                 ephemeral-storage: 2Gi
+                gpu.intel.com/i915: 1
               limits:
                 memory: 4Gi
+                gpu.intel.com/i915: 1
                 # Caps transcode scratch on the node OS disk. emptyDir sizeLimit
                 # is only enforced for tmpfs, so this is the real guard.
                 ephemeral-storage: 16Gi
@@ -137,15 +139,5 @@ spec:
               - path: /media
                 subPath: media
                 readOnly: true
-      # Intel UHD 630 (Coffee Lake) render node for VAAPI.
-      # On Talos, renderD128 is mode 0666 root:root, so no supplementalGroups
-      # is needed — any UID can open it. card0 is 0600 and unused by VAAPI,
-      # so only the render node is exposed.
-      dri:
-        type: hostPath
-        hostPath: /dev/dri/renderD128
-        hostPathType: CharDevice
-        advancedMounts:
-          jellyfin:
-            app:
-              - path: /dev/dri/renderD128
+      # No /dev/dri mount: hostPath grants no cgroup allow rule (EPERM on open).
+      # The render node arrives via the gpu.intel.com/i915 resource request.
