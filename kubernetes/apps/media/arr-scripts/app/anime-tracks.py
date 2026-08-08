@@ -109,23 +109,28 @@ def process(path, apply_changes, quiet=False):
     return True
 
 
+# Sonarr/Radarr pass variables through .NET StringDictionary, which lowercases
+# every key — the process sees sonarr_eventtype, not the documented CamelCase.
+ENV = {k.lower(): v for k, v in os.environ.items()}
+
+
 def from_env():
-    """Path to process when invoked as an ARR Custom Script, else None."""
-    ev = os.environ.get("Sonarr_EventType") or os.environ.get("Radarr_EventType")
+    """Paths to process when invoked as an ARR Custom Script, else None."""
+    ev = ENV.get("sonarr_eventtype") or ENV.get("radarr_eventtype")
     if not ev:
         return None
     if ev != "Download":  # Test, Grab, Rename, health events
         print(f"event {ev}: nothing to do")
         sys.exit(0)
-    if os.environ.get("Sonarr_EventType"):
-        if os.environ.get("Sonarr_Series_Type", "").lower() != "anime":
+    if ENV.get("sonarr_eventtype"):
+        if ENV.get("sonarr_series_type", "").lower() != "anime":
             print("not an anime series, skipping")
             sys.exit(0)
-        paths = os.environ.get("Sonarr_EpisodeFile_Path") or ""
-        extra = os.environ.get("Sonarr_EpisodeFile_Paths") or ""
+        paths = ENV.get("sonarr_episodefile_path") or ""
+        extra = ENV.get("sonarr_episodefile_paths") or ""
     else:
-        paths = os.environ.get("Radarr_MovieFile_Path") or ""
-        extra = os.environ.get("Radarr_MovieFile_Paths") or ""
+        paths = ENV.get("radarr_moviefile_path") or ""
+        extra = ENV.get("radarr_moviefile_paths") or ""
     found = [p for p in ([paths] + extra.split("|")) if p]
     return list(dict.fromkeys(found))
 
@@ -134,14 +139,22 @@ def main():
     env_paths = from_env()
     if env_paths is not None:
         for p in env_paths:
-            process(p, apply_changes=True)
-        return 0  # never fail the import
+            try:
+                process(p, apply_changes=True)
+            except Exception as e:  # a bad file must never fail the import
+                print(f"  ERROR {p}: {e}")
+        return 0
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("roots", nargs="+", type=Path)
+    ap.add_argument("roots", nargs="*", type=Path)
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--quiet", action="store_true", help="hide already-correct files")
     a = ap.parse_args()
+
+    # No env, no args: an ARR probing the script. Never fail its validation.
+    if not a.roots:
+        print("no ARR event and no paths given; nothing to do")
+        return 0
 
     files = sorted(f for r in a.roots for f in r.rglob("*.mkv"))
     print(f"scanning {len(files)} files")
