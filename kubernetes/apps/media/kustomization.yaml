@@ -14,3 +14,4 @@ resources:
   - bazarr/ks.yaml
   - profilarr/ks.yaml
   - jellyfin/ks.yaml
+  - jellyseerr/ks.yaml

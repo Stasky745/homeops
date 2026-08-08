@@ -15,7 +15,7 @@ This file tells Claude how to work in this repository.
 
 ## Cluster Overview
 
-**Talos Linux** `v1.13.4` · **Kubernetes** `v1.36.1` · **Flux** `v2.8.8` (via Flux Operator `v0.57.0`)
+**Talos Linux** `v1.13.8` · **Kubernetes** `v1.36.1` · **Flux** `v2.8.8` (via Flux Operator `v0.57.0`)
 
 ### Nodes
 
@@ -27,17 +27,27 @@ This file tells Claude how to work in this repository.
 
 > **Do not confuse the two disks.** Talos installs to **`/dev/nvme1n1`** (`installDisk` in `talos/talconfig.yaml`). **`/dev/nvme0n1`** is the Samsung 1TB holding the Rook-Ceph OSDs (`deviceFilter: "^nvme0n1$"` in the rook-ceph-cluster HelmRelease). Targeting `nvme0n1` with an install or wipe destroys all Ceph data. The disks were swapped at some point and this table previously listed the wrong one.
 
-All three nodes are control-plane only (`allowSchedulingOnControlPlanes: true`). There are no dedicated workers. All nodes use the same Talos factory image:
-`factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245`
+All three nodes are control-plane only (`allowSchedulingOnControlPlanes: true`). There are no dedicated workers, and all nodes are identical: **Intel Core i5-8500 (Coffee Lake) with UHD Graphics 630**.
 
-Schematic contents (verify with `curl -s https://factory.talos.dev/schematics/<id>`):
+The installer image is **not hardcoded**. Each node declares a `schematic:` block in `talos/talconfig.yaml`; talhelper resolves it against the Image Factory and builds
+`factory.talos.dev/metal-installer/<id>:<talosVersion>` (currently `249d9135…:v1.13.8`).
 
 | Extension | Purpose |
 |---|---|
 | `siderolabs/iscsi-tools` | iSCSI support — required by Ceph CSI |
 | `siderolabs/util-linux-tools` | util-linux userspace utilities |
+| `siderolabs/i915` | Intel GPU modules + firmware — VAAPI/QSV for Jellyfin |
+| `siderolabs/intel-ucode` | CPU microcode |
 
-The `iscsi_tcp`, `dm_crypt` and `rbd` entries under `machine.kernel.modules` are *kernel modules*, not extensions — a separate mechanism.
+Verify a schematic with `curl -s https://factory.talos.dev/schematics/<id>`. Preview what talhelper will generate, without executing anything:
+
+```sh
+talhelper gencommand upgrade --config-file talos/talconfig.yaml --out-dir talos/clusterconfig --node <host>
+```
+
+**Extensions are installed by `talosctl upgrade`, never by `apply-config`** — they live in the installer image, not the machine config. Use `task talos:upgrade NODE=<host>`, one node at a time, waiting for both `task talos:health` **and** Ceph `HEALTH_OK` in between. Talos guards etcd quorum automatically but knows nothing about Ceph.
+
+The `iscsi_tcp`, `dm_crypt`, `rbd` and `i915` entries under `machine.kernel.modules` are *kernel modules*, a separate mechanism — an extension ships the module, but it must still be declared to load.
 
 Primary network interface on all nodes: `eno1`
 
