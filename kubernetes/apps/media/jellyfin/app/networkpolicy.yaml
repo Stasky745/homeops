@@ -19,6 +19,12 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: network
 
+    # Seerr calls the Jellyfin API to authenticate users and sync libraries.
+    # Inbound only — does not weaken the egress containment this policy exists for.
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: jellyseerr
+
   egress:
     # Cluster DNS
     - toEndpoints:
