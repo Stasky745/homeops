@@ -89,7 +89,9 @@ spec:
         labels:
           external-dns.stasky.win/publish: "true"
         annotations:
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          # Grey cloud. Video through Cloudflare's proxy breaches ToS 2.8, gets
+          # throttled, and adds the HTTPS/SVCB ECH records that break LAN browsers.
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
         hostnames:
           - jellyfin.ribera.cat
         parentRefs:
