@@ -1,0 +1,115 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: photos
+spec:
+  interval: 1h
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: immich
+    namespace: photos
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    # Top-level keys apply to every Immich component. This chart is built on the
+    # same bjw-s common library as our app-template releases.
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              # The chart does not track Immich releases — pin the app separately.
+              tag: v3.1.0
+            env:
+              TZ: Europe/Andorra
+              DB_HOSTNAME: postgres-rw.database.svc.cluster.local
+              DB_USERNAME: immich
+              DB_DATABASE_NAME: immich
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-secret
+                    key: DB_PASSWORD
+              REDIS_HOSTNAME: redis-immich.database.svc.cluster.local
+
+    defaultPodOptions:
+      annotations:
+        reloader.stakater.com/auto: "true"
+
+    immich:
+      persistence:
+        library:
+          existingClaim: immich-library
+
+    # Shipped Valkey is off: we use the redis-operator instance in `database`,
+    # matching redis-paperless.
+    valkey:
+      enabled: false
+
+    server:
+      controllers:
+        main:
+          containers:
+            main:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 1Gi
+                limits:
+                  memory: 4Gi
+      persistence:
+        # Regenerable derivatives live on the un-backed-up dataset, so restic
+        # scope stays decided by robin's `backup:` flag alone.
+        cache:
+          type: nfs
+          server: 192.168.42.20
+          path: /tank/photos-cache
+          advancedMounts:
+            main:
+              main:
+                - path: /data/thumbs
+                  subPath: thumbs
+                - path: /data/encoded-video
+                  subPath: encoded-video
+      route:
+        main:
+          hostnames:
+            - immich.stasky.win
+          parentRefs:
+            - name: stasky
+              namespace: network
+              sectionName: https
+          rules:
+            - backendRefs:
+                - identifier: main
+
+    machine-learning:
+      controllers:
+        main:
+          containers:
+            main:
+              image:
+                tag: v3.1.0-openvino
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 1Gi
+                  gpu.intel.com/i915: 1
+                limits:
+                  memory: 6Gi
+                  gpu.intel.com/i915: 1
+      persistence:
+        # PVC, not the chart's default emptyDir: otherwise the CLIP and face
+        # models are re-downloaded on every restart.
+        cache:
+          type: persistentVolumeClaim
+          size: 20Gi
+          accessMode: ReadWriteOnce
+          storageClass: ceph-block

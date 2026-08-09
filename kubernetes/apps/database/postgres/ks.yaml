@@ -1,0 +1,35 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: postgres
+  namespace: flux-system
+spec:
+  targetNamespace: database
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: postgres
+  dependsOn:
+    - name: cloudnative-pg
+    - name: external-secrets-clustersecretstore
+    - name: rook-ceph-cluster
+  path: ./kubernetes/apps/database/postgres/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  timeout: 15m
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: postgres
+      namespace: database
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Database
+      name: immich
+      namespace: database
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: postgres-immich-user
+      namespace: database

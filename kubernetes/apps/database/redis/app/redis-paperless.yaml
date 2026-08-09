@@ -11,7 +11,7 @@ spec:
   timeout: 5m
   chartRef:
     kind: OCIRepository
-    name: redis-paperless
+    name: redis
     namespace: database
   install:
     remediation:

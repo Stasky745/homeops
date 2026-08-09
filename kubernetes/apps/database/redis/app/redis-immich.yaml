@@ -1,0 +1,43 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  # Release name becomes the Redis CR name and so the Service name:
+  #   redis-immich.database.svc.cluster.local:6379
+  name: redis-immich
+  namespace: database
+spec:
+  interval: 1h
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: redis
+    namespace: database
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    redisStandalone:
+      image: quay.io/opstree/redis
+      tag: v7.0.15
+      imagePullPolicy: IfNotPresent
+      serviceType: ClusterIP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 512Mi
+    # Immich uses Redis for its job queues. Losing it strands in-flight thumbnail
+    # and ML jobs, which are re-runnable — but the operator requires a PVC anyway.
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi

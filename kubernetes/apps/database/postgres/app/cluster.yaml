@@ -1,0 +1,39 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:18-standard-trixie
+
+  storage:
+    size: 20Gi
+    storageClass: ceph-block
+
+  bootstrap:
+    initdb:
+      dataChecksums: true
+
+  postgresql:
+    # VectorChord backs Immich's CLIP smart search and face-recognition vectors.
+    # Mounted as an image volume — needs k8s >= 1.35 and containerd >= 2.1.
+    shared_preload_libraries:
+      - vchord.so
+    extensions:
+      - name: vchord
+        image:
+          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
+        dynamic_library_path:
+          - /usr/lib/postgresql/18/lib
+        extension_control_path:
+          - /usr/share/postgresql/18/
+
+  # One role per consumer — a shared cluster has no per-app "app" role.
+  managed:
+    roles:
+      - name: immich
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-immich-user

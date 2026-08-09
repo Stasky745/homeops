@@ -1,0 +1,29 @@
+# Static NFS PV rather than an inline `type: nfs` volume: the chart hard-fails
+# without immich.persistence.library.existingClaim (see its checks.yaml).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-library
+spec:
+  capacity:
+    storage: 4Ti
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: ["nfsvers=4.2", "hard", "noatime"]
+  nfs:
+    server: 192.168.42.20
+    path: /tank/photos
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+  namespace: photos
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: ""
+  volumeName: immich-library
+  resources:
+    requests:
+      storage: 4Ti
