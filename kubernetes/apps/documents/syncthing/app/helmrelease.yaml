@@ -88,17 +88,18 @@ spec:
         storageClass: ceph-block
         globalMounts:
           - path: /var/syncthing
-      # Obsidian vault — backed up by NAS Restic (tank/k8s)
+      # Obsidian vault — backed up by restic (backup: true on tank/obsidian)
       obsidian:
-        accessMode: ReadWriteMany
-        size: 20Gi
-        storageClass: nfs
-        retain: true
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/obsidian
         globalMounts:
           - path: /data/obsidian
       # Shared inbox: Syncthing writes here, Paperless consumes from here
       consume:
-        existingClaim: consume
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/consume
         globalMounts:
           - path: /data/consume
 

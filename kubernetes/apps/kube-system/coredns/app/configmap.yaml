@@ -21,6 +21,14 @@ data:
             rcode NOERROR
         }
     }
+    ribera.cat:53 {
+        template IN A ribera.cat {
+            answer "{{ .Name }} 60 IN A 192.168.42.101"
+        }
+        template IN AAAA ribera.cat {
+            rcode NOERROR
+        }
+    }
     .:53 {
         errors
         health {

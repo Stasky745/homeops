@@ -14,16 +14,19 @@ spec:
       app.kubernetes.io/name: jellyfin
 
   ingress:
-    # Envoy Gateway only
+    # Whole network namespace: both the ribera gateway (internal clients) and
+    # newt (public via Pangolin, which targets jellyfin.media.svc directly).
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
-
-    # Seerr calls the Jellyfin API to authenticate users and sync libraries.
-    # Inbound only — does not weaken the egress containment this policy exists for.
-    - fromEndpoints:
+        # Seerr authenticates users and syncs libraries against the Jellyfin API.
         - matchLabels:
+            io.kubernetes.pod.namespace: media
             app.kubernetes.io/instance: jellyseerr
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
 
   egress:
     # Cluster DNS

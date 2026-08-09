@@ -14,7 +14,6 @@ spec:
     - name: pocket-id
     - name: redis-paperless
     - name: rook-ceph-cluster
-    - name: democratic-csi
   path: ./kubernetes/apps/documents/paperless/app
   prune: true
   sourceRef:

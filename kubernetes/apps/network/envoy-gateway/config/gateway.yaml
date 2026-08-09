@@ -84,7 +84,10 @@ metadata:
   annotations:
     # external-dns reads target from the Gateway, not the Route. Without it,
     # the private LB IP would be published publicly.
-    external-dns.alpha.kubernetes.io/target: pangolin.stasky.win
+    # vps.stasky.win, not pangolin.stasky.win: the latter is orange-clouded, and
+    # a CNAME to it puts video through Cloudflare's proxy (ToS 2.8) and adds the
+    # ECH records that break LAN browsers. Same VPS, Traefik routes by Host.
+    external-dns.alpha.kubernetes.io/target: vps.stasky.win
 spec:
   gatewayClassName: envoy
   infrastructure:

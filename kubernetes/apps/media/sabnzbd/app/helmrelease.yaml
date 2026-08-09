@@ -103,7 +103,9 @@ spec:
             app:
               - path: /config
       media:
-        existingClaim: media-data
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/data
         advancedMounts:
           sabnzbd:
             app:

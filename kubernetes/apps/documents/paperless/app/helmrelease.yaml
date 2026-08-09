@@ -135,22 +135,22 @@ spec:
         globalMounts:
           - path: /data/local
       nas:
-        accessMode: ReadWriteMany
-        size: 100Gi
-        storageClass: nfs-no-backup
-        retain: true
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/paperless-nas
         globalMounts:
           - path: /data/media
             subPath: media
       consume:
-        existingClaim: consume
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/consume
         globalMounts:
           - path: /data/consume
       export:
-        accessMode: ReadWriteMany
-        size: 100Gi
-        storageClass: nfs
-        retain: true
+        type: nfs
+        server: 192.168.42.20
+        path: /tank/paperless-export
         globalMounts:
           - path: /usr/src/paperless/export
 
