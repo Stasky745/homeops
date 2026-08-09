@@ -65,19 +65,22 @@ spec:
                 limits:
                   memory: 4Gi
       persistence:
-        # Regenerable derivatives live on the un-backed-up dataset, so restic
-        # scope stays decided by robin's `backup:` flag alone.
-        cache:
+        # Regenerable derivatives sit on their own un-backed-up datasets, so
+        # restic scope stays decided by robin's `backup:` flag alone. A whole
+        # dataset per mount, not subPaths — nothing then has to pre-create
+        # directories inside a shared export.
+        thumbs:
           type: nfs
           server: 192.168.42.20
-          path: /tank/photos-cache
-          advancedMounts:
-            main:
-              main:
-                - path: /data/thumbs
-                  subPath: thumbs
-                - path: /data/encoded-video
-                  subPath: encoded-video
+          path: /tank/photos-thumbs
+          globalMounts:
+            - path: /data/thumbs
+        encoded-video:
+          type: nfs
+          server: 192.168.42.20
+          path: /tank/photos-encoded
+          globalMounts:
+            - path: /data/encoded-video
       route:
         main:
           hostnames:
