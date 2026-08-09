@@ -7,8 +7,14 @@ configMapGenerator:
   - name: anime-tracks
     files:
       - anime-tracks.py
+  - name: media-audit
+    files:
+      - media-audit.py
 
 # Consumers live in other Flux Kustomizations and reference this by name,
 # so the hash suffix must not be applied. Reloader handles rollout on change.
+# substitute: disabled stops Flux postBuild mangling ${...} inside scripts.
 generatorOptions:
   disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
