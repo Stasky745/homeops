@@ -3,5 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - gbi/ks.yaml
+  - ollama/ks.yaml
   - paperless/ks.yaml
+  # - paperless-gpt/ks.yaml
   - syncthing/ks.yaml

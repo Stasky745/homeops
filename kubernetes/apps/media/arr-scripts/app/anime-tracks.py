@@ -22,6 +22,7 @@ from pathlib import Path
 SIGNS = re.compile(r"sign|song|s&s|forced|karaoke|op/ed|typeset", re.I)
 JPN = {"jpn", "ja", "jp"}
 ENG = {"eng", "en"}
+UND = {"und"}
 
 
 def lang(t):
@@ -48,30 +49,49 @@ def plan(path):
     subs = [t for t in info["tracks"] if t["type"] == "subtitles"]
     edits, notes = [], []
 
-    want_a = next((i for i, t in enumerate(audio)
-                   if lang(t) in JPN and not flag(t, "flag_commentary")), None)
+    def pick(langs):
+        return next((i for i, t in enumerate(audio)
+                     if lang(t) in langs and not flag(t, "flag_commentary")), None)
+
+    want_a, from_und = pick(JPN), False
     if want_a is None:
-        notes.append("no jpn audio")
+        want_a, from_und = pick(UND), True
+    if want_a is None:
+        notes.append("no jpn/und audio")
     else:
         for i, t in enumerate(audio):
             want = 1 if i == want_a else 0
             if int(t["properties"].get("default_track", False)) != want:
                 edits.append((f"track:a{i + 1}", "flag-default", want))
-        notes.append(f"audio=a{want_a + 1}")
+        # Jellyfin will not honour an und track as the default, so retag it —
+        # but only when it beat a real language, never a lone untagged track.
+        if from_und and len(audio) > 1:
+            edits.append((f"track:a{want_a + 1}", "language", "jpn"))
+            notes.append(f"audio=a{want_a + 1} (und -> jpn)")
+        elif from_und:
+            notes.append(f"audio=a{want_a + 1} (REVIEW: only und audio, not retagged)")
+        else:
+            notes.append(f"audio=a{want_a + 1}")
 
-    eng = [i for i, t in enumerate(subs)
-           if lang(t) in ENG and not flag(t, "flag_commentary")]
-    dialogue = [i for i in eng
-                if not SIGNS.search(title(subs[i]))
-                and not flag(subs[i], "flag_hearing_impaired")]
-    if not eng:
-        notes.append("no eng subs")
+    # Rank on the track name before the language tag: a dialogue track in any
+    # language beats a signs/songs one, since groups routinely mistag dialogue
+    # as jpn. Language only breaks ties between equally dialogue-like tracks.
+    def sub_rank(i):
+        t = subs[i]
+        return (bool(SIGNS.search(title(t))),
+                flag(t, "flag_hearing_impaired"),
+                0 if lang(t) in ENG else 1 if lang(t) in JPN | UND else 2,
+                i)
+
+    cand = [i for i, t in enumerate(subs) if not flag(t, "flag_commentary")]
+    if not cand:
+        notes.append("no subs")
     else:
-        want_s = dialogue[0] if dialogue else eng[0]
-        if not dialogue:
-            notes.append("REVIEW: only signs-like eng tracks")
-        elif len(dialogue) > 1:
-            notes.append(f"{len(dialogue)} dialogue tracks, took first")
+        want_s = min(cand, key=sub_rank)
+        if SIGNS.search(title(subs[want_s])):
+            notes.append("REVIEW: only signs-like subs")
+        elif lang(subs[want_s]) not in ENG:
+            notes.append(f"REVIEW: non-eng dialogue subs ({lang(subs[want_s])})")
         for i, t in enumerate(subs):
             want = 1 if i == want_s else 0
             if int(t["properties"].get("default_track", False)) != want:

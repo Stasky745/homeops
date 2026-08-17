@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ollama
+  namespace: documents
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      ollama:
+        # Only one pod may hold the RWO model volume, and a second replica would
+        # double the CPU contention for no benefit.
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: docker.io/ollama/ollama
+              tag: "0.32.14"
+            env:
+              TZ: Europe/Andorra
+              OLLAMA_HOST: 0.0.0.0:11434
+
+              # --- CPU inference tuning -------------------------------------
+              # These nodes are i5-8500s (6C/6T, AVX2, no AVX-512) with no
+              # usable accelerator: both spare iGPUs are claimed by jellyfin
+              # and immich, and UHD 630 shares this same DDR4 bus anyway, so it
+              # offers no bandwidth win for token generation. CPU-only it is.
+              #
+              # MUST equal the cpu limit below. llama.cpp reads the *host's*
+              # core count (6) and spawns that many threads; inside a 3-core
+              # cgroup that throttles and ends up slower than 3 threads.
+              OLLAMA_NUM_THREAD: "3"
+              # A second parallel slot allocates a second KV cache. One request
+              # at a time — paperless-gpt is the only client and it runs a
+              # single suggestion worker.
+              OLLAMA_NUM_PARALLEL: "1"
+              OLLAMA_MAX_LOADED_MODELS: "1"
+              # paperless-gpt issues six sequential calls per document, so the
+              # 5m default would unload the model mid-document and re-read
+              # ~2.5Gi off ceph. -1 would pin it forever; 30m is the middle.
+              OLLAMA_KEEP_ALIVE: "30m"
+              # Bounds the KV cache. paperless-gpt sets TOKEN_LIMIT=2000 on its
+              # side, so 8192 leaves headroom without over-allocating.
+              OLLAMA_CONTEXT_LENGTH: "8192"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  # Generous: a cold start reads the model off ceph-block.
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                # This request is what places the pod — deliberately no
+                # nodeName/nodeSelector, so it re-lands correctly as workloads
+                # move between nodes rather than being pinned to whichever node
+                # happened to be idle when this was written.
+                cpu: 1500m
+                memory: 4Gi
+              limits:
+                # Keep OLLAMA_NUM_THREAD in sync with this value.
+                cpu: 3000m
+                memory: 6Gi
+
+    service:
+      app:
+        controller: ollama
+        ports:
+          http:
+            port: 11434
+
+    # No route: the Ollama API is unauthenticated and cluster-internal only.
+    # paperless-gpt reaches it over the ClusterIP.
+
+    persistence:
+      # Model blobs, pulled with `ollama pull` (Ollama has no declarative model
+      # spec, so that stays a manual step — see the app README/plan).
+      #
+      # `retain` is deliberately omitted. This is a single-PVC release, so it is
+      # exposed to app-template's rename trap: adding a second volume later
+      # would rename `ollama` -> `ollama-models`. Since the contents are a pure
+      # cache of public artifacts, letting the old PVC be deleted and re-pulling
+      # is cheaper than leaving 20Gi of replicated storage stranded — which is
+      # what `retain: true` did to paperless-data/-nas/-export in this namespace.
+      models:
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        storageClass: ceph-block
+        globalMounts:
+          - path: /root/.ollama
+
+    defaultPodOptions:
+      # Inference is the most expendable thing in this cluster. Below the
+      # default priority of 0 so it is evicted before Ceph OSDs, Postgres or
+      # Jellyfin ever are, and never preempts them itself.
+      priorityClassName: low-priority
+      automountServiceAccountToken: false

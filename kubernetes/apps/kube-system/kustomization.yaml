@@ -5,3 +5,4 @@ resources:
   - reloader/ks.yaml
   - coredns/ks.yaml
   - intel-gpu-plugin/ks.yaml
+  - priority-classes/ks.yaml

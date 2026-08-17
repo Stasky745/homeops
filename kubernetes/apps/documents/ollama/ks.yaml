@@ -1,0 +1,27 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ollama
+  namespace: flux-system
+spec:
+  targetNamespace: documents
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: ollama
+  dependsOn:
+    - name: app-template
+    - name: priority-classes
+    - name: rook-ceph-cluster
+  path: ./kubernetes/apps/documents/ollama/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: ollama
+      namespace: documents

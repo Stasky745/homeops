@@ -1,0 +1,20 @@
+---
+# Cluster-scoped, so no targetNamespace applies.
+#
+# Everything in this cluster that doesn't set priorityClassName sits at the
+# default priority 0 — which means a best-effort workload would compete on equal
+# footing with Ceph OSDs, Postgres and Jellyfin. Placing one explicitly *below*
+# zero is what makes it yield, on whichever node the scheduler happens to pick.
+# That is deliberately a scheduling property rather than a node pin: pods move.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: -10
+globalDefault: false
+# Never displace anything else to make room for itself. Combined with the
+# negative value: first to be evicted under pressure, never the cause of it.
+preemptionPolicy: Never
+description: >-
+  Best-effort workloads that must yield to everything else. First to be evicted
+  under node pressure and never preempts. Used by CPU-hungry inference (ollama).
