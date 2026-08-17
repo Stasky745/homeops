@@ -38,10 +38,11 @@ spec:
               # and immich, and UHD 630 shares this same DDR4 bus anyway, so it
               # offers no bandwidth win for token generation. CPU-only it is.
               #
-              # MUST equal the cpu limit below. llama.cpp reads the *host's*
-              # core count (6) and spawns that many threads; inside a 3-core
-              # cgroup that throttles and ends up slower than 3 threads.
-              OLLAMA_NUM_THREAD: "3"
+              # No thread-count var: OLLAMA_NUM_THREAD does not exist (num_thread
+              # is a model option, not a server env var). llama.cpp spawns one
+              # thread per host core (6) and is barrier-synchronised, so a quota
+              # below 6 freezes all threads together — a 3-core limit measured
+              # 79% of periods throttled and 2.06 tok/s. Keep limits.cpu >= 6.
               # A second parallel slot allocates a second KV cache. One request
               # at a time — paperless-gpt is the only client and it runs a
               # single suggestion worker.
@@ -92,8 +93,11 @@ spec:
                 cpu: 1500m
                 memory: 4Gi
               limits:
-                # Keep OLLAMA_NUM_THREAD in sync with this value.
-                cpu: 3000m
+                # >= the 6 threads llama.cpp spawns, or it throttles itself into
+                # the ground. Protection against starving Ceph/Jellyfin comes
+                # from low-priority + the modest request above (cgroup shares),
+                # not from a quota — CPU is compressible, throttling is not.
+                cpu: 6000m
                 memory: 6Gi
 
     service:
