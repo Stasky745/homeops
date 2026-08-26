@@ -16,3 +16,7 @@ spec:
           kubernetes:
             deploy:
               type: GatewayNamespace
+        # Backend CRD — lets an HTTPRoute reach a backend that serves its own
+        # self-signed TLS (unifi-os-server) via tls.insecureSkipVerify.
+        extensionApis:
+          enableBackend: true

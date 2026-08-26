@@ -1,0 +1,13 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: unifi-os-server
+  namespace: unifi
+spec:
+  endpoints:
+    - fqdn:
+        hostname: unifi-os-server.unifi.svc.cluster.local
+        port: 443
+  # UniFi OS terminates TLS with a cert it generates itself — there is no CA to pin.
+  tls:
+    insecureSkipVerify: true

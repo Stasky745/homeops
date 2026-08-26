@@ -1,0 +1,138 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/refs/heads/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unifi-os-server
+  namespace: unifi
+spec:
+  interval: 1h
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      unifi-os-server:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/lemker/unifi-os-server
+              tag: "v1.5.1"
+            env:
+              # Written to system.properties as system_ip — this is the host APs
+              # inform against, so it must be the LB IP. The gateway has no :8080.
+              UOS_SYSTEM_IP: 192.168.42.103
+              HOST_IP:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/bash", "-c", "echo $HOST_IP host.docker.internal >> /etc/hosts"]
+            securityContext:
+              # /sbin/init is PID 1; systemd needs writable host cgroups.
+              privileged: true
+            probes:
+              # Cold start runs mongodb, postgresql, rabbitmq and nginx under
+              # systemd before /api/ping answers — allow 10 minutes.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/ping
+                    port: 80
+                  periodSeconds: 15
+                  failureThreshold: 40
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/ping
+                    port: 80
+                  periodSeconds: 60
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness:
+                enabled: false
+            resources:
+              requests:
+                cpu: 500m
+                memory: 2Gi
+              limits:
+                memory: 6Gi
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
+
+    service:
+      app:
+        forceRename: unifi-os-server
+        controller: unifi-os-server
+        ports:
+          https:
+            port: 443
+      devices:
+        forceRename: unifi-os-server-devices
+        controller: unifi-os-server
+        type: LoadBalancer
+        # Local preserves the AP source IP; STUN would otherwise record the
+        # forwarding node and the controller would track the wrong address.
+        externalTrafficPolicy: Local
+        annotations:
+          io.cilium/lb-ipam-ips: "192.168.42.103"
+        ports:
+          inform:
+            port: 8080
+            protocol: TCP
+          stun:
+            port: 3478
+            protocol: UDP
+          speedtest:
+            port: 6789
+            protocol: TCP
+          https:
+            port: 443
+            protocol: TCP
+
+    route:
+      app:
+        hostnames:
+          - unifi.stasky.win
+        parentRefs:
+          - name: stasky
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - group: gateway.envoyproxy.io
+                kind: Backend
+                name: unifi-os-server
+
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        storageClass: ceph-block
+        retain: true
+        advancedMounts:
+          unifi-os-server:
+            app:
+              - path: /persistent
+                subPath: persistent
+              - path: /data
+                subPath: data
+              - path: /srv
+                subPath: srv
+              - path: /var/lib/unifi
+                subPath: unifi
+              - path: /var/lib/mongodb
+                subPath: mongodb
+              - path: /var/log
+                subPath: log
+              - path: /etc/rabbitmq/ssl
+                subPath: rabbitmq

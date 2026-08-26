@@ -16,3 +16,4 @@ resources:
   - database
   - media
   - photos
+  - unifi

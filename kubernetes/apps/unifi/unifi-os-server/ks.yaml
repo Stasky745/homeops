@@ -1,0 +1,28 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: unifi-os-server
+  namespace: flux-system
+spec:
+  targetNamespace: unifi
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: unifi-os-server
+  dependsOn:
+    - name: app-template
+    - name: rook-ceph-cluster
+    - name: envoy-gateway-config
+  path: ./kubernetes/apps/unifi/unifi-os-server/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 30m
+  retryInterval: 1m
+  # First boot brings up mongodb, postgresql and rabbitmq under systemd.
+  timeout: 20m
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: unifi-os-server
+      namespace: unifi
