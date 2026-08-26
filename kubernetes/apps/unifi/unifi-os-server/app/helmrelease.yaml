@@ -80,9 +80,10 @@ spec:
         forceRename: unifi-os-server-devices
         controller: unifi-os-server
         type: LoadBalancer
-        # Local preserves the AP source IP; STUN would otherwise record the
-        # forwarding node and the controller would track the wrong address.
-        externalTrafficPolicy: Local
+        # Cluster, not Local: Cilium elects the L2 announcing node without
+        # regard to endpoint placement, so Local blackholes whenever the lease
+        # lands on a node without the pod. Costs the AP's source IP to SNAT.
+        externalTrafficPolicy: Cluster
         annotations:
           io.cilium/lb-ipam-ips: "192.168.42.103"
         ports:
