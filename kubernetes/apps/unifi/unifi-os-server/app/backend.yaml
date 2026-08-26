@@ -8,6 +8,11 @@ spec:
     - fqdn:
         hostname: unifi-os-server.unifi.svc.cluster.local
         port: 443
+  # The UI blocks on a websocket and renders blank without this; Envoy rejects
+  # the upgrade with a 400 unless the protocol is declared. wss, not ws — the
+  # backend connection is TLS.
+  appProtocols:
+    - gateway.envoyproxy.io/wss
   # UniFi OS terminates TLS with a cert it generates itself — there is no CA to pin.
   tls:
     insecureSkipVerify: true
