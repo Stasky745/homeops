@@ -13,7 +13,7 @@ spec:
           cloudflare:
             apiTokenSecretRef:
               name: cloudflare-api-token
-              key: api-token
+              key: CF_API_TOKEN
         selector:
           dnsZones:
             - stasky.win
@@ -21,7 +21,7 @@ spec:
           cloudflare:
             apiTokenSecretRef:
               name: ribera-cat-dns-token
-              key: api-token
+              key: CF_API_TOKEN
         selector:
           dnsZones:
             - ribera.cat
@@ -41,7 +41,7 @@ spec:
           cloudflare:
             apiTokenSecretRef:
               name: cloudflare-api-token
-              key: api-token
+              key: CF_API_TOKEN
         selector:
           dnsZones:
             - stasky.win
@@ -49,7 +49,7 @@ spec:
           cloudflare:
             apiTokenSecretRef:
               name: ribera-cat-dns-token
-              key: api-token
+              key: CF_API_TOKEN
         selector:
           dnsZones:
             - ribera.cat

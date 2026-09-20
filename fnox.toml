@@ -1,4 +1,0 @@
-[secrets]
-CLOUDFLARE_API_TOKEN     = { provider = "op", value = "op://HomeOps/CF - Terraform/credential" }
-HAWSER_TOKEN             = { provider = "op", value = "op://HomeOps/Hawser/token" }
-OP_SERVICE_ACCOUNT_TOKEN = { provider = "op", value = "op://HomeOps/1Password - Terraform SA/credential" }

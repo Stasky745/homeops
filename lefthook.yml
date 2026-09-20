@@ -1,0 +1,8 @@
+min_version: 1.10.0
+assert_lefthook_installed: true
+
+pre-commit:
+  jobs:
+    - name: betterleaks
+      run: betterleaks git --staged --redact --no-banner --verbose
+      fail_text: "commit blocked — secret in staged changes, or betterleaks missing from PATH (see output above). False positive: annotate the line with `betterleaks:allow`"

@@ -15,3 +15,7 @@ talos/nodes.env
 # Cluster-wide settings (personal info, not committed)
 # Copy kubernetes/cluster.env.example and fill in your values
 kubernetes/cluster.env
+
+# varlock — .env.schema is committed on purpose; resolved values never are
+.env
+.env.local

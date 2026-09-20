@@ -47,7 +47,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: external-dns-cloudflare
-            key: cloudflare-api-token
+            key: CF_API_TOKEN
 
     serviceAccount:
       create: true
