@@ -7,3 +7,4 @@ resources:
   - paperless/ks.yaml
   # - paperless-gpt/ks.yaml
   - syncthing/ks.yaml
+  - tududi/ks.yaml
