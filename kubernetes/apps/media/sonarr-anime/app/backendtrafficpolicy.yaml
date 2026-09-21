@@ -1,0 +1,17 @@
+---
+# Nyaa.si has no ID-based lookup, so Sonarr falls back to ~7-10 sequential
+# alternate-title searches against it per query, easily exceeding Envoy's
+# default 15s route timeout and surfacing as "Unable to load results" in the UI.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: sonarr-anime
+  namespace: media
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: sonarr-anime
+  timeout:
+    http:
+      requestTimeout: 60s

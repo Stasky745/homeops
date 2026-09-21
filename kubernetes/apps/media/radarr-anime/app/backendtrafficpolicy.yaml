@@ -1,0 +1,15 @@
+---
+# Same Nyaa.si alternate-title-search timeout issue as sonarr-anime.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: radarr-anime
+  namespace: media
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: radarr-anime
+  timeout:
+    http:
+      requestTimeout: 60s
