@@ -6,3 +6,4 @@ resources:
   - coredns/ks.yaml
   - intel-gpu-plugin/ks.yaml
   - priority-classes/ks.yaml
+  - metrics-server/ks.yaml

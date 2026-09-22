@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 1h
+  # No OCI chart is published upstream; the community mirrors are third-party, so
+  # this stays on the project's own repo like external-dns does.
+  url: https://kubernetes-sigs.github.io/metrics-server/

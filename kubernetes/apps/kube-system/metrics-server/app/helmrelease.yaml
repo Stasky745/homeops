@@ -1,0 +1,40 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 1h
+  timeout: 5m
+  chart:
+    spec:
+      chart: metrics-server
+      version: "3.14.0"
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+        namespace: kube-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    # Appended to the chart's defaultArgs, which already set --cert-dir,
+    # --kubelet-preferred-address-types, --kubelet-use-node-status-port and
+    # --metric-resolution; repeating them here would just duplicate the flags.
+    args:
+      # Talos kubelets serve a self-signed cert and this cluster does not run
+      # serverTLSBootstrap, so there is no CA to verify against. The documented
+      # alternative is a machine-config change on every node plus a CSR approver.
+      - --kubelet-insecure-tls
+    metrics:
+      enabled: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
