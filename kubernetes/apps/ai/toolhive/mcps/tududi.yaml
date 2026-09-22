@@ -4,12 +4,15 @@ metadata:
   name: tududi-token
   namespace: ai
 spec:
-  type: bearerToken
-  bearerToken:
-    # Stored without the "Bearer " prefix; the proxy adds it.
-    tokenSecretRef:
+  # Not bearerToken: vMCP registers converters for tokenExchange, headerInjection,
+  # unauthenticated, upstreamInject, awsSts, obo and xaa only — bearerToken is
+  # accepted by the CRD but rejected at runtime as an unsupported backend type.
+  type: headerInjection
+  headerInjection:
+    headerName: Authorization
+    valueSecretRef:
       name: toolhive-secret
-      key: TUDUDI_API_TOKEN
+      key: TUDUDI_AUTH_HEADER
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServerEntry
