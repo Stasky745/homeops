@@ -106,3 +106,12 @@ spec:
   interval: 30m
   retryInterval: 1m
   timeout: 5m
+  healthChecks:
+    - apiVersion: toolhive.stacklok.dev/v1alpha1
+      kind: MCPServer
+      name: mealie
+      namespace: ai
+    - apiVersion: toolhive.stacklok.dev/v1alpha1
+      kind: MCPServer
+      name: tududi
+      namespace: ai

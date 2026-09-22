@@ -4,7 +4,8 @@ metadata:
   name: homelab
   namespace: ai
 spec:
-  groupRef: homelab
+  groupRef:
+    name: homelab
   incomingAuth:
     type: oidc
     oidcConfig:
