@@ -19,6 +19,10 @@ spec:
       retries: 3
   values:
     operator:
+      features:
+        # The chart rejects namespace scope with this on: the migrator watches
+        # cluster-scoped CRDs across all namespaces.
+        storageVersionMigrator: false
       rbac:
         scope: namespace
         allowedNamespaces:

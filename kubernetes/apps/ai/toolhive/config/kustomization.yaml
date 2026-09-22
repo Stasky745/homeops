@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - externalsecret.yaml
   - mcpgroup.yaml
+  - mcpoidcconfig.yaml
   - virtualmcpserver.yaml
   - httproute.yaml

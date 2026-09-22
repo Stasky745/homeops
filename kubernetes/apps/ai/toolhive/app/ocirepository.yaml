@@ -10,4 +10,4 @@ spec:
     operation: copy
   url: oci://ghcr.io/stacklok/toolhive/toolhive-operator
   ref:
-    tag: "0.5.5"
+    tag: "0.50.0"

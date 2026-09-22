@@ -10,4 +10,4 @@ spec:
     operation: copy
   url: oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds
   ref:
-    tag: "0.0.55"
+    tag: "0.50.0"

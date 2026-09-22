@@ -1,4 +1,4 @@
-apiVersion: toolhive.stacklok.dev/v1alpha1
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   name: mealie
@@ -6,7 +6,8 @@ metadata:
 spec:
   image: ghcr.io/timo-reymann/mealie-mcp-server:1.15.0
   transport: stdio
-  groupRef: homelab
+  groupRef:
+    name: homelab
   env:
     - name: MEALIE_BASE_URL
       value: https://mealie.stasky.win
