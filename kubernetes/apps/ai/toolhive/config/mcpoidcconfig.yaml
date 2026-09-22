@@ -1,9 +1,11 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPOIDCConfig
 metadata:
-  name: pocket-id
+  name: vmcp-embedded
   namespace: ai
 spec:
   type: inline
   inline:
-    issuer: https://pocket-id.stasky.win
+    # vMCP's own embedded authorization server, not Pocket ID: the issuer must
+    # match authServerConfig.issuer so the tokens it mints validate here.
+    issuer: https://mcp.stasky.win

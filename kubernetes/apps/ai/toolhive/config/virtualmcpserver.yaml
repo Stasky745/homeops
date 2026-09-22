@@ -6,13 +6,31 @@ metadata:
 spec:
   groupRef:
     name: homelab
+  # Pocket ID publishes no registration_endpoint, so MCP clients cannot register
+  # against it. The embedded AS provides one and delegates the actual login
+  # upstream, which is what makes a bare `claude mcp add` work.
+  authServerConfig:
+    issuer: https://mcp.stasky.win
+    upstreamProviders:
+      - name: pocket-id
+        type: oidc
+        oidcConfig:
+          issuerUrl: https://pocket-id.stasky.win
+          # Substituted from the toolhive-settings Secret in flux-system.
+          clientId: ${OIDC_CLIENT_ID}
+          clientSecretRef:
+            name: toolhive-secret
+            key: OIDC_CLIENT_SECRET
+          scopes:
+            - openid
+            - profile
+            - email
+    # Backends carry their own credentials, so the upstream token is not needed
+    # downstream; this also keeps the proxy off the upstreamswap code path.
+    disableUpstreamTokenInjection: true
   incomingAuth:
     type: oidc
     oidcConfigRef:
-      name: pocket-id
-      # The Pocket ID API resource identifier. The CRD requires this to be unique
-      # per server: it is what stops a token minted for another app being replayed
-      # here. resourceUrl is advertised for RFC 9728 discovery — the default would
-      # be the in-cluster Service URL, which no browser can reach.
+      name: vmcp-embedded
       audience: https://mcp.stasky.win
       resourceUrl: https://mcp.stasky.win
