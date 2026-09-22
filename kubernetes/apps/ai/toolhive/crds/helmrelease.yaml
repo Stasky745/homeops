@@ -17,4 +17,18 @@ spec:
     cleanupOnFail: true
     remediation:
       retries: 3
+  # Upstream lists "mcpservers" as a shortName of mcpservers, duplicating its own
+  # plural. The API server rejects that with ShortNamesConflict, leaving the CRD
+  # NamesAccepted=False and stalling the release. Dropping shortNames costs
+  # nothing: kubectl still resolves the plural and singular. Only this one CRD is
+  # affected — mcpgroups duplicates its singular, which is accepted.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: CustomResourceDefinition
+              name: mcpservers.toolhive.stacklok.dev
+            patch: |
+              - op: remove
+                path: /spec/names/shortNames
   values: {}
