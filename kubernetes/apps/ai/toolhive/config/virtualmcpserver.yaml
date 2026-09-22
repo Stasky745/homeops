@@ -16,6 +16,9 @@ spec:
         type: oidc
         oidcConfig:
           issuerUrl: https://pocket-id.stasky.win
+          # pocket-id.stasky.win resolves to the internal gateway (192.168.42.100),
+          # which the AS's SSRF guard refuses without this.
+          allowPrivateIPs: true
           # Substituted from the toolhive-settings Secret in flux-system.
           clientId: ${OIDC_CLIENT_ID}
           clientSecretRef:
