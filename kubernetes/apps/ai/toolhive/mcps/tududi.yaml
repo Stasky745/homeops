@@ -1,0 +1,39 @@
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: tududi
+  namespace: ai
+spec:
+  # tududi hosts its own MCP endpoint, and its stdio server talks to the database
+  # rather than the API — so it cannot run as a second pod against the SQLite
+  # volume. mcp-remote bridges stdio to that endpoint instead, which is what lets
+  # tududi carry a groupRef and join the vMCP aggregate.
+  image: node:22-alpine
+  transport: stdio
+  groupRef: homelab
+  secrets:
+    - name: toolhive-secret
+      key: TUDUDI_API_TOKEN
+      targetEnvName: TUDUDI_API_TOKEN
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - npx
+            - --yes
+            - mcp-remote@0.14.3
+            - http://tududi.documents.svc.cluster.local:3002/api/mcp
+            - --allow-http
+            - --transport
+            - http-only
+            - --header
+            # mcp-remote expands ${...} itself; Kubernetes only expands $(...),
+            # so the token reaches the process via env, never argv.
+            - Authorization:Bearer ${TUDUDI_API_TOKEN}
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

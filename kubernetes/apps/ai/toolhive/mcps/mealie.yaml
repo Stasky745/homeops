@@ -1,0 +1,22 @@
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: mealie
+  namespace: ai
+spec:
+  image: ghcr.io/timo-reymann/mealie-mcp-server:1.15.0
+  transport: stdio
+  groupRef: homelab
+  env:
+    - name: MEALIE_BASE_URL
+      value: https://mealie.stasky.win
+  secrets:
+    - name: toolhive-secret
+      key: MEALIE_API_KEY
+      targetEnvName: MEALIE_API_KEY
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

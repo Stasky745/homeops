@@ -1,0 +1,17 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp
+  namespace: ai
+spec:
+  hostnames:
+    - mcp.stasky.win
+  parentRefs:
+    - name: stasky
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        # vmcpServiceName() prefixes the CR name; port 4483 is the vmcp default.
+        - name: vmcp-homelab
+          port: 4483

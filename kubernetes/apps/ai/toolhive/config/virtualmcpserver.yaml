@@ -1,0 +1,20 @@
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: VirtualMCPServer
+metadata:
+  name: homelab
+  namespace: ai
+spec:
+  groupRef: homelab
+  incomingAuth:
+    type: oidc
+    oidcConfig:
+      type: inline
+      # Advertised to clients for RFC 9728 discovery; the default would be the
+      # in-cluster Service URL, which no browser can reach.
+      resourceUrl: https://mcp.stasky.win
+      inline:
+        issuer: https://pocket-id.stasky.win
+        # The Pocket ID API resource identifier, not a client id — Pocket ID puts
+        # the resource in aud. Without it any token it issued for any homelab app
+        # would be accepted here.
+        audience: https://mcp.stasky.win
