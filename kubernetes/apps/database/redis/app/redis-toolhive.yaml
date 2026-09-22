@@ -1,0 +1,51 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  # The release name becomes the Redis CR name, which in turn becomes the
+  # Service name the operator creates:
+  #   redis-toolhive.database.svc.cluster.local:6379
+  name: redis-toolhive
+  namespace: database
+spec:
+  interval: 1h
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: redis
+    namespace: database
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    redisStandalone:
+      image: quay.io/opstree/redis
+      tag: v7.0.15
+      imagePullPolicy: IfNotPresent
+      serviceType: ClusterIP
+      # ToolHive's embedded auth server requires a password — its storage config
+      # has no unauthenticated mode. This is why the instance is not shared with
+      # the passwordless redis-immich and redis-paperless.
+      redisSecret:
+        secretName: redis-toolhive-auth
+        secretKey: password
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+    # Unlike the other two instances this is not disposable: it holds the OAuth
+    # clients MCP clients registered dynamically, and losing it makes every one
+    # of them re-register.
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi

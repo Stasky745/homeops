@@ -96,6 +96,8 @@ spec:
     - name: toolhive-operator
     - name: toolhive-settings
     - name: pocket-id
+    # The embedded auth server stores its client registry here.
+    - name: redis
   postBuild:
     substituteFrom:
       - kind: Secret

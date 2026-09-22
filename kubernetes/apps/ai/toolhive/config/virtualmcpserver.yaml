@@ -11,6 +11,25 @@ spec:
   # upstream, which is what makes a bare `claude mcp add` work.
   authServerConfig:
     issuer: https://mcp.stasky.win
+    # All three are required together for a restart to be survivable: without the
+    # keys every issued token stops verifying, and without redis the dynamically
+    # registered clients are lost, which forces `claude mcp remove` + `add`.
+    signingKeySecretRefs:
+      - name: toolhive-secret
+        key: AUTH_SIGNING_KEY
+    hmacSecretRefs:
+      - name: toolhive-secret
+        key: AUTH_HMAC_SECRET
+    storage:
+      type: redis
+      redis:
+        addr: redis-toolhive.database.svc.cluster.local:6379
+        # usernameSecretRef omitted on purpose — the operator sets requirepass,
+        # which is password-only AUTH.
+        aclUserConfig:
+          passwordSecretRef:
+            name: toolhive-secret
+            key: REDIS_PASSWORD
     upstreamProviders:
       - name: pocket-id
         type: oidc

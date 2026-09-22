@@ -11,6 +11,7 @@ spec:
   dependsOn:
     - name: redis-operator
     - name: rook-ceph-cluster
+    - name: external-secrets-clustersecretstore
   path: ./kubernetes/apps/database/redis/app
   prune: true
   sourceRef:
@@ -27,6 +28,14 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: redis-paperless
+      namespace: database
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: redis-toolhive
+      namespace: database
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: redis-toolhive-auth
       namespace: database
     - apiVersion: source.toolkit.fluxcd.io/v1
       kind: OCIRepository
