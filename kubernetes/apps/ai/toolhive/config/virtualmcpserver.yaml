@@ -35,5 +35,8 @@ spec:
     type: oidc
     oidcConfigRef:
       name: vmcp-embedded
-      audience: https://mcp.stasky.win
-      resourceUrl: https://mcp.stasky.win
+      # Trailing slash is deliberate: Claude Code derives the RFC 8707 resource
+      # from the server URL origin as "https://mcp.stasky.win/", and the AS
+      # compares audiences as exact strings.
+      audience: https://mcp.stasky.win/
+      resourceUrl: https://mcp.stasky.win/
