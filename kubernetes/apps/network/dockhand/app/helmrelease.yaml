@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: fnsys/dockhand
-              tag: "v1.0.40"
+              tag: "v1.0.48"
             env:
               DATA_DIR: /app/data
               DISABLE_LOCAL_LOGIN: "true"
