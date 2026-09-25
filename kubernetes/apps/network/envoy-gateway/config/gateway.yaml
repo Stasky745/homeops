@@ -5,7 +5,13 @@ metadata:
   name: stasky-client-policy
   namespace: network
 spec:
-  http3: {}
+  # http3 removed 2026-09-25. It made Envoy advertise `alt-svc: h3=":443"` with a
+  # 24 h max-age, so browsers moved to QUIC and long-lived connections broke:
+  # Syncthing's event long-poll and Dockhand's WebSocket both dropped every few
+  # seconds. Plain requests over h3 worked, so it is specifically the long-lived
+  # case — WebSocket over HTTP/3 needs Extended CONNECT (RFC 9220), which this
+  # path does not appear to negotiate. HTTP/2 over TCP measured 20/20 stable, and
+  # h3 buys nothing on a LAN, where its wins (loss, high RTT) do not apply.
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
