@@ -81,11 +81,17 @@ spec:
               - identifier: app
 
     persistence:
-      # Syncthing config, device identity, and index DB — small, needs no RWX
+      # Syncthing config, device identity, and index DB — small, needs no RWX.
+      # retain is load-bearing: without it Helm deleted this PVC when the release
+      # was recreated on 2026-08-09, and Syncthing came back with a new device ID.
+      # Every peer then saw the old ID as permanently offline, and the config and
+      # folder list were gone — the volume was deleted outright, not orphaned, so
+      # there was nothing to reattach.
       config:
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: ceph-block
+        retain: true
         globalMounts:
           - path: /var/syncthing
       # Obsidian vault — backed up by restic (backup: true on tank/obsidian)

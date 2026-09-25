@@ -1,0 +1,36 @@
+---
+# paperless-gpt has no authentication of its own: its UI and every /api/* route
+# are open to anyone who can reach the port, and anyone who does can rewrite
+# documents in paperless-ngx. Since *.stasky.win resolves to the internal
+# gateway, that would include the iot and cctv VLANs — both of which nami's
+# forwarding matrix permits to reach `servers`.
+#
+# This is the cluster's first SecurityPolicy; reuse the pattern for any other
+# app that ships without auth.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: paperless-gpt
+  namespace: documents
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      # app-template names the HTTPRoute after the release for the `app` route key.
+      name: paperless-gpt
+  oidc:
+    provider:
+      issuer: https://pocket-id.stasky.win
+    # Both refs read fixed key names out of the Secret — `client-id` here and
+    # `client-secret` below — which is why the ExternalSecret templates those
+    # exact keys. Using clientIDRef rather than an inline clientID keeps the
+    # whole OIDC client out of git.
+    clientIDRef:
+      name: paperless-gpt-oidc
+    clientSecret:
+      name: paperless-gpt-oidc
+    redirectURL: https://paperless-gpt.stasky.win/oauth2/callback
+    logoutPath: /logout
+    scopes:
+      - profile
+      - email
