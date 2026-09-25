@@ -4,3 +4,4 @@ resources:
   - gateway.yaml
   - certificate.yaml
   - redirect.yaml
+  - backendtrafficpolicy.yaml

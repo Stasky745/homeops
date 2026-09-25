@@ -1,0 +1,34 @@
+---
+# Envoy Gateway defaults every route to a 15s request timeout
+# (HTTPRequestTimeout in internal/gatewayapi/route.go). That bound covers the
+# *entire* response, not just time-to-first-byte, so it cuts anything long:
+# SSE streams, long polls, slow uploads, large downloads.
+#
+# It was found cutting Dockhand's /api/activity/events and Syncthing's
+# /rest/events at exactly 15s — `duration: 15001, response_flags: UT` in the
+# access log — making both UIs flash a connection error and reconnect on a 15s
+# cycle. Applied at the Gateway so every route inherits it, rather than
+# rediscovering it per app.
+#
+# 0s disables the overall route timeout. Envoy's per-stream idle timeout still
+# applies and is what reaps a genuinely hung request, so this removes the
+# wall-clock cap without removing the safety net.
+#
+# Route-level policies still win: "only the most specific configuration takes
+# effect" (backendtrafficpolicy_types.go). The ARR apps keep their own 60s.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: no-request-timeout
+  namespace: network
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: stasky
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: ribera
+  timeout:
+    http:
+      requestTimeout: 0s
