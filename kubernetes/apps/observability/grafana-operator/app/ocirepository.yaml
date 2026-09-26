@@ -9,5 +9,6 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: v5.25.0
+    # Chart tags carry no v prefix, unlike the GitHub release tags.
+    tag: 5.25.0
   url: oci://ghcr.io/grafana/helm-charts/grafana-operator
