@@ -90,24 +90,28 @@ spec:
           limits:
             memory: 1Gi
           requests:
-            cpu: 500m
+            cpu: 100m
             memory: 512Mi
         mon:
           limits:
             memory: 2Gi
           requests:
-            cpu: 1000m
+            cpu: 100m
             memory: 1Gi
         osd:
           limits:
             memory: 4Gi
           requests:
-            cpu: 1000m
+            # Above the ~25m steady state: requests set CFS shares, and OSDs must
+            # win CPU against colocated workloads during recovery and scrub.
+            cpu: 250m
+            # Matches osd_memory_target — lowering this without also lowering
+            # that invites OOM kills once the bluestore cache fills.
             memory: 4Gi
         # No limits on prepareosd — it's a one-time burst job; OOM kill orphans the OSD
         prepareosd:
           requests:
-            cpu: 500m
+            cpu: 100m
             memory: 50Mi
         mgr-sidecar:
           limits:
