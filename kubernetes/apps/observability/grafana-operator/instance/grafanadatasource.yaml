@@ -1,0 +1,20 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: victoriametrics
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: VictoriaMetrics
+    type: prometheus
+    # The bundled dashboards hardcode this uid as their datasource reference.
+    uid: prometheus
+    access: proxy
+    isDefault: true
+    url: http://vmsingle-vm.observability.svc.cluster.local:8428
+    jsonData:
+      prometheusType: Prometheus
+      timeInterval: 30s

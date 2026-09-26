@@ -65,9 +65,12 @@ spec:
             requests:
               storage: 20Gi
         resources:
+          # Memory request equals limit throughout: VictoriaMetrics sizes its
+          # caches from the cgroup limit, so the limit is what it will actually
+          # use. No CPU limit anywhere — CFS throttling hurts even on an idle node.
           requests:
             cpu: 100m
-            memory: 1Gi
+            memory: 2Gi
           limits:
             memory: 2Gi
 
@@ -76,10 +79,8 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 512Mi
           limits:
-            # Bursts well past its request during scrape/remote-write cycles.
-            cpu: 1000m
             memory: 512Mi
 
     vmalert:
@@ -87,7 +88,7 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 128Mi
+            memory: 256Mi
           limits:
             memory: 256Mi
 
@@ -99,6 +100,6 @@ spec:
         resources:
           requests:
             cpu: 25m
-            memory: 64Mi
+            memory: 128Mi
           limits:
             memory: 128Mi

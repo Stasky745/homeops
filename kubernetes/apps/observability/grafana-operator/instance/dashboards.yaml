@@ -1,0 +1,198 @@
+# Dashboards ship as ConfigMaps from the victoria-metrics-k8s-stack chart, so
+# they stay version-matched to it. Deliberately omitted: kubernetes-proxy (Cilium
+# replaces kube-proxy), victoriametrics-cluster and -backupmanager (single-node,
+# no backup manager), grafana-overview.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-views-global
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-views-global
+    key: kubernetes-views-global.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-views-nodes
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-views-nodes
+    key: kubernetes-views-nodes.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-views-pods
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-views-pods
+    key: kubernetes-views-pods.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-views-namespaces
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-views-namespaces
+    key: kubernetes-views-namespaces.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: node-exporter-full
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-node-exporter-full
+    key: node-exporter-full.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: etcd
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-etcd
+    key: etcd.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-system-api-server
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-system-api-server
+    key: kubernetes-system-api-server.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-kubelet
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-kubelet
+    key: kubernetes-kubelet.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-scheduler
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-scheduler
+    key: kubernetes-scheduler.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-controller-manager
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-controller-manager
+    key: kubernetes-controller-manager.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-system-coredns
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-kubernetes-system-coredns
+    key: kubernetes-system-coredns.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: victoriametrics-single-node
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-victoriametrics-single-node
+    key: victoriametrics-single-node.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: victoriametrics-vmagent
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-victoriametrics-vmagent
+    key: victoriametrics-vmagent.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: victoriametrics-vmalert
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-victoriametrics-vmalert
+    key: victoriametrics-vmalert.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: alertmanager-overview
+  namespace: observability
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: vm-alertmanager-overview
+    key: alertmanager-overview.json

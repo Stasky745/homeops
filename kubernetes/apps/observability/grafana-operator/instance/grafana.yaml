@@ -1,0 +1,32 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    # Datasources and dashboards attach to this instance via instanceSelector.
+    dashboards: grafana
+spec:
+  config:
+    server:
+      root_url: https://grafana.stasky.win
+    analytics:
+      check_for_updates: "false"
+      check_for_plugin_updates: "false"
+      reporting_enabled: "false"
+    news:
+      news_feed_enabled: "false"
+    date_formats:
+      use_browser_locale: "true"
+  deployment:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: grafana
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 512Mi
+                limits:
+                  memory: 512Mi
