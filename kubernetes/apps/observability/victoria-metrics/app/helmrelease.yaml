@@ -1,0 +1,104 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-metrics
+  namespace: observability
+spec:
+  interval: 30m
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: victoria-metrics
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    # Keeps component names short and predictable: vmsingle-vm, vmagent-vm, ...
+    fullnameOverride: vm
+
+    # Dashboards come from grafana-operator as GrafanaDashboard CRs, not here.
+    grafana:
+      enabled: false
+
+    # Talos runs etcd as a host service with no pod to select, so the chart's
+    # selector finds zero targets. Scraped by the VMNodeScrape in ../config.
+    kubeEtcd:
+      enabled: false
+
+    defaultRules:
+      create: true
+      runbookUrl: https://runbooks.prometheus-operator.dev/runbooks
+      rules:
+        # Talos has no systemd and no mdraid — these can never fire.
+        NodeSystemdServiceFailed:
+          create: false
+        NodeSystemdServiceCrashlooping:
+          create: false
+        NodeRAIDDegraded:
+          create: false
+        NodeRAIDDiskFailure:
+          create: false
+        # kubelet serverTLSBootstrap is off, so no renewal metrics exist.
+        KubeletServerCertificateRenewalErrors:
+          create: false
+        # Only useful as an Alertmanager inhibit_rule source; none are defined.
+        InfoInhibitor:
+          create: false
+        # Talos mints sub-30m certs during upgrades, dragging the p01 expiry
+        # quantile below threshold for the duration of every rollout.
+        KubeClientCertificateExpiration:
+          spec:
+            for: 1h
+
+    vmsingle:
+      spec:
+        retentionPeriod: "30d"
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: ceph-block
+          resources:
+            requests:
+              storage: 20Gi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 2Gi
+
+    vmagent:
+      spec:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            # Bursts well past its request during scrape/remote-write cycles.
+            cpu: 1000m
+            memory: 512Mi
+
+    vmalert:
+      spec:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+    # Routing and the Gotify receiver are configured separately; the chart
+    # default routes everything to a no-op blackhole receiver until then.
+    alertmanager:
+      enabled: true
+      spec:
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 128Mi

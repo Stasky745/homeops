@@ -1,0 +1,17 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMNodeScrape
+metadata:
+  name: etcd
+  namespace: observability
+spec:
+  # Talos exposes etcd metrics per node via the listen-metrics-urls machine
+  # config patch. Node discovery avoids hardcoding control-plane IPs.
+  port: "2381"
+  scheme: http
+  selector:
+    matchLabels:
+      node-role.kubernetes.io/control-plane: ""
+  relabelConfigs:
+    # The bundled etcd rules and dashboards all select on job="etcd".
+    - targetLabel: job
+      replacement: etcd
