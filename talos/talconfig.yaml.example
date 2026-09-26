@@ -1,5 +1,5 @@
 clusterName: <cluster-name>
-talosVersion: v1.13.4
+talosVersion: v1.13.8
 kubernetesVersion: v1.36.1
 endpoint: https://<vip-ip>:6443
 allowSchedulingOnControlPlanes: true
@@ -13,21 +13,35 @@ patches:
     cluster:
       proxy:
         disabled: true
-  - |-
+      etcd:
+        # MANDATORY. Without this, etcd registers on Cilium's cilium_host IPs,
+        # which are only reachable over VXLAN — switching to native routing then
+        # deadlocks etcd with no recovery path short of a full re-bootstrap.
+        advertisedSubnets:
+          - <node-subnet-cidr>
+        # Default listener is loopback-only, so in-cluster scrapes find no target.
+        extraArgs:
+          listen-metrics-urls: http://0.0.0.0:2381
+      # Both default to 127.0.0.1, making their metrics unscrapable from a pod.
+      # The ports stay authenticated — authz is delegated to the apiserver.
+      controllerManager:
+        extraArgs:
+          bind-address: 0.0.0.0
+      scheduler:
+        extraArgs:
+          bind-address: 0.0.0.0
     machine:
       kernel:
         modules:
           - name: iscsi_tcp
           - name: dm_crypt
+          - name: rbd
+          - name: i915
       kubelet:
-        extraMounts:
-          - destination: /var/lib/longhorn
-            type: bind
-            source: /var/lib/longhorn
-            options:
-              - bind
-              - rshared
-              - rw
+        # MANDATORY, same reason as advertisedSubnets above.
+        nodeIP:
+          validSubnets:
+            - <node-subnet-cidr>
       sysctls:
         vm.max_map_count: "262144"
       network:
